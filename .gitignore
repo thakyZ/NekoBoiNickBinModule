@@ -1,0 +1,7 @@
+*.exe
+*.dll
+*.cer
+*.pvk
+*.pdb
+Settings.json
+*.bak

@@ -1,0 +1,23 @@
+{
+  "[json]": {
+    "editor.defaultFormatter": "j-brooke.fracturedjsonvsc"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "j-brooke.fracturedjsonvsc"
+  },
+  "[php]"   : {"editor.defaultFormatter": "vscode.php-language-features"},
+  "[python]": {"editor.tabSize": 4},
+  "[markdown]": {
+    "diffEditor.ignoreTrimWhitespace": false,
+    "diffEditor.wordWrap": "on",
+    "editor.defaultFormatter": "DavidAnson.vscode-markdownlint",
+    "editor.quickSuggestions": {"other": "on"},
+    "editor.smartSelect.selectLeadingAndTrailingWhitespace": true,
+    "editor.trimAutoWhitespace": false,
+    "editor.wordWrap": "wordWrapColumn",
+    "editor.wordWrapColumn": 150,
+    "files.trimFinalNewlines": false,
+    "files.trimTrailingWhitespace": false
+  },
+  "[xml]": {"editor.defaultFormatter": "DotJoshJohnson.xml"},
+}

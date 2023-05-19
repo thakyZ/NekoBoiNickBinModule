@@ -1,0 +1,50 @@
+[core]
+	editor = \"C:/Users/<%USER%>/AppData/Local/Programs/Microsoft VS Code/bin/code\" --wait
+	autocrlf = true
+[user]
+	name = <%USER_NAME%>
+	email = <%USER_EMAIL%>
+	signingkey = <%GPG_KEY%>
+[commit]
+	gpgsign = true
+[merge]
+	tool = kdiff3
+	guitool = kdiff3
+[mergetool "kdiff3"]
+	path = C:/Progra~1/KDiff3/kdiff3.exe
+	trustExitCode = false
+	cmd = \"C:/Program Files/KDiff3/kdiff3.exe\" \"$BASE\" \"$LOCAL\" \"$REMOTE\" -o \"$MERGED\"
+[mergetool "vscode"]
+	path = C:/Users/<%USER%>/AppData/Local/Programs/Microsoft VS Code/bin/code
+	cmd = \"C:/Users/<%USER%>/AppData/Local/Programs/Microsoft VS Code/bin/code\" --wait \"$MERGED\"
+[diff]
+	guitool = kdiff3
+[difftool "kdiff3"]
+	path = C:/Progra~1/KDiff3/kdiff3.exe
+	trustExitCode = false
+	cmd = \"C:/Program Files/KDiff3/kdiff3.exe\" \"$LOCAL\" \"$REMOTE\"
+[difftool "vscode"]
+	path = C:/Users/<%USER%>/AppData/Local/Programs/Microsoft VS Code/bin/code
+	cmd = \"C:/Users/<%USER%>/AppData/Local/Programs/Microsoft VS Code/bin/code\" --wait --diff \"$LOCAL\" \"$REMOTE\"
+[tag]
+	gpgSign = true
+[submodule]
+	recurse = true
+	propagateBranches = true
+[push]
+	gpgSign = if-asked
+[gpg]
+	program = C:/Users/<%USER%>/AppData/Roaming/gnupg/.gpg-pinentry-loopback.sh
+	cmd = C:/Users/<%USER%>/scoop/apps/gnupg/current/bin/gpg.exe
+[safe]
+	directory = D:/Files/System/Programs/single-file-companion
+[pull]
+	rebase = false
+[fetch]
+	prune = false
+[rebase]
+	autoStash = false
+	autosquash = false
+	updateRefs = false
+[i18n]
+	filesEncoding = utf-8

@@ -1,0 +1,22 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0", 
+  "configurations": [
+    {
+      "name": "PowerShell: Test Profile", 
+      "type": "PowerShell", 
+      "request": "launch", 
+      "script": "${env:UserProfile}\\Documents\\PowerShell\\Microsoft.PowerShell_profile.ps1", 
+      "args": []
+    }, 
+    {
+      "name": "PowerShell: Test Unblock-Files", 
+      "type": "PowerShell", 
+      "request": "launch", 
+      "script": "${workspaceFolder}\\Unblock-Files.ps1", 
+      "args": ["-Path $HOME\\Pictures -Verbose -Recurse"]
+    }
+  ]
+}

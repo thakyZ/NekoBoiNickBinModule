@@ -492,4 +492,10 @@ FodyWeavers.xsd
 *.cer
 *.pvk
 [Ss]ettings.json
+!.vscode/[Ss]ettings.json
 *.bak
+[Aa]uto[Aa]udio[Rr]epeater.cfg
+[Aa]uto[Aa]udio[Rr]epeater.*.cfg
+[Pp]ython3_[Bb]in_[Rr]eldir.txt
+[Cc]onfig.json
+!.vscode/test

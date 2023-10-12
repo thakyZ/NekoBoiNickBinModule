@@ -1,1 +1,55 @@
-{ "steam": {"username": "", "password": ""} }
+{
+  "Steam": {
+    "Username": "",
+    "Password": ""
+  },
+  "Installs": {
+    "DoubleVision": "doubleVision",
+    "pngCrush"    : "pngcrush"    ,
+    "Ruby"        : "gem"
+  },
+  "AudioRepeaterSettings": {
+    "Current": {
+      "Input": "High Definition Audio",
+      "Output": "High Definition Audio",
+      "SamplingRate": 32000,
+      "BitsPerSample": 16,
+      "Channels": 2,
+      "ChannelCfg": "Stereo",
+      "BufferMs": 100,
+      "BufferParts": 12,
+      "Prefill": 70,
+      "ResyncAt": 20,
+      "Priority": "Normal"
+    },
+    "Presets": [
+      {
+        "Name": "sample",
+        "Settings": {
+          "Input": "High Definition Audio",
+          "Output": "High Definition Audio",
+          "SamplingRate": 32000,
+          "BitsPerSample": 16,
+          "Channels": 2,
+          "ChannelCfg": "Stereo",
+          "BufferMs": 100,
+          "BufferParts": 12,
+          "Prefill": 70,
+          "ResyncAt": 20,
+          "Priority": "Normal"
+        }
+      }
+    ]
+  },
+  "Tokens": [
+    {
+      "Name": "GitHub",
+      "Addresses": [
+        "api.github.com"           ,
+        "github.com"               ,
+        "raw.githubusercontent.com"
+      ],
+      "Token": "..."
+    }
+  ]
+}

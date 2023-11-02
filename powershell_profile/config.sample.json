@@ -1,1 +1,11 @@
-{ "gnupg": {"email": "", "password_hashed": ""} }
+{
+  "gnupg": {
+    "email"          : "",
+    "password_hashed": ""
+  },
+  "aliases": {
+  },
+  "captures": {
+    "location": "%HOME%\\Downloads\\u\\captures"
+  }
+}

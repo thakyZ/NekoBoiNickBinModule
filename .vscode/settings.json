@@ -20,4 +20,9 @@
     "files.trimTrailingWhitespace": false
   },
   "[xml]": {"editor.defaultFormatter": "DotJoshJohnson.xml"},
+  "files.associations": {"config.sample.json": "jsonc"},
+  "fracturedjsonvsc.v3.AlwaysExpandDepth": 1,
+  "fracturedjsonvsc.v3.AllowTrailingCommas": true,
+  "fracturedjsonvsc.v3.CommentPolicyForJSON": "TreatAsError",
+  "fracturedjsonvsc.v3.MaxInlineComplexity": 2
 }

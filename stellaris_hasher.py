@@ -1,6 +1,7 @@
 import hashlib
 import os
 import argparse
+import xxhash
 
 parser = argparse.ArgumentParser(description="Outputs the hashes of all subdirectories of target.")
 parser.add_argument("--silent", action="store_true", help="Disables console output.")

@@ -24,5 +24,6 @@
   "fracturedjsonvsc.v3.AlwaysExpandDepth": 1,
   "fracturedjsonvsc.v3.AllowTrailingCommas": true,
   "fracturedjsonvsc.v3.CommentPolicyForJSON": "TreatAsError",
-  "fracturedjsonvsc.v3.MaxInlineComplexity": 2
+  "fracturedjsonvsc.v3.MaxInlineComplexity": 2,
+  "cSpell.words": ["Choco", "typeof"]
 }

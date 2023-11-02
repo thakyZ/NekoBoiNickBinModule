@@ -1,1 +1,1 @@
-. "$($PSScriptRoot)\Microsoft.PowerShell_profile.ps1"
+. "$(Join-Path -Path (Get-Item -Path $PROFILE).Directory.FullName -ChildPath "\Microsoft.PowerShell_profile.ps1")"

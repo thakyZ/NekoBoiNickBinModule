@@ -1,6 +1,4 @@
-param()
-
-$ProfileDirectory = (Get-Item -Path $PROFILE).Directory;
+Param()
 
 Function Get-ProfileConfigJson() {
   Param()

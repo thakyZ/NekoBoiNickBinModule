@@ -499,3 +499,4 @@ FodyWeavers.xsd
 [Pp]ython3_[Bb]in_[Rr]eldir.txt
 [Cc]onfig.json
 !.vscode/test
+.mypy_cache

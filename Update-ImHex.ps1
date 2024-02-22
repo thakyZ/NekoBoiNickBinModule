@@ -34,18 +34,20 @@ If ($Null -ne $FoundTokens) {
 
 Write-Host "Determining latest release..."
 If ($Null -ne $script:Bearer) {
-  $RepoData = (Invoke-RestMethod -Uri "$($Releases)" -Authentication Bearer -Token $script:Bearer)[0].assets;
-  $TagName = (Invoke-RestMethod -Uri "$($Releases)" -Authentication Bearer -Token $script:Bearer)[0].tag_name;
+  $RepoData = (Invoke-RestMethod -Uri "$($Releases)" -Authentication Bearer -Token $script:Bearer)[0];
+  $Assets = $RepoData.assets;
+  $TagName = $RepoData.tag_name;
 } Else {
-  $RepoData = (Invoke-RestMethod -Uri "$($Releases)" -Authentication None)[0].assets;
-  $TagName = (Invoke-RestMethod -Uri "$($Releases)" -Authentication None)[0].tag_name;
+  $RepoData = (Invoke-RestMethod -Uri "$($Releases)" -Authentication None)[0];
+  $Assets = $RepoData.assets;
+  $TagName = $RepoData.tag_name;
 }
 
 [string[]]$FilesToDownloadApi = @()
 [string[]]$FilesToDownload = @()
 [string[]]$FileNames = @()
 
-ForEach ($Item in $RepoData) {
+ForEach ($Item in $Assets) {
   [string[]]$FilesToDownloadApi += $Item.url
 }
 
@@ -162,7 +164,7 @@ If ($FilesToDownload.Length -gt 1) {
   Exit 2;
 }
 
-Expand-Archive -Force -Path (Join-Path -Path $DownloadDest -ChildPath $FileNames[0]) -DestinationPath $DownloadDest
+Expand-Archive -Force -Path (Join-Path -Path $DownloadDest -ChildPath $FileNames[0]) -DestinationPath $DownloadDest;
 
 If (Test-Path -LiteralPath (Join-Path -Path $DownloadDest -ChildPath $FileNames[0])) {
   Remove-Item -Force -Path (Join-Path -Path $DownloadDest -ChildPath $FileNames[0]);

@@ -38,7 +38,11 @@ If ($Path.Length -ne 0 -or -not ([string]::IsNullOrEmpty($Path))) {
 If ($Browser -eq "Brave") {
   $DownloadPageUri = "https://brave.com/download/";
   Try {
-    $DownloadPage = (Invoke-WebRequest -Uri $DownloadPageUri -SkipHttpErrorCheck -ErrorAction SilentlyContinue);
+    If ($PSVersionTable.PSVersion.Major -gt 5) {
+      $DownloadPage = (Invoke-WebRequest -Uri $DownloadPageUri -SkipHttpErrorCheck -ErrorAction SilentlyContinue);
+    } Else {
+      $DownloadPage = (Invoke-WebRequest -Uri $DownloadPageUri -ErrorAction SilentlyContinue);
+    }
     If ($DownloadPage.StatusCode -ne 200) {
       Write-Error -Message "Download of page $($DownloadPageUri) returned status code $($DownloadPage.StatusCode)";
     } Else {
@@ -55,6 +59,13 @@ If ($Browser -eq "Brave") {
     }
   } Catch {
     Write-Error -Exception $_.Exception -Message $_.Exception.Message;
+    If ($Null -ne $_.Exception.InnerException) {
+      Write-Error -Exception $_.Exception.InnerException -Message $_.Exception.InnerException.Message;
+      If ($Null -ne $_.Exception.InnerException.InnerException) {
+        Write-Error -Exception $_.Exception.InnerException.InnerException -Message $_.Exception.InnerException.InnerException.Message;
+      }
+    }
+    Write-Output $_.Exception.InnerException.InnerException.StackTrace | Out-Host;
     Throw;
   }
 } Else {

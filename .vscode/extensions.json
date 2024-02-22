@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ionutvmi.reg",
+    "ms-vscode.powershell",
+    "ms-python.black-formatter",
+    "ms-python.autopep8"
+  ]
+}

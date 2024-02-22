@@ -1,29 +1,49 @@
 {
   "[json]": {
-    "editor.defaultFormatter": "j-brooke.fracturedjsonvsc"
+    "editor.defaultFormatter": "vscode.json-language-features",
+    "editor.formatOnSave": false,
+    "editor.formatOnPaste": false,
+    "editor.formatOnType": false,
   },
   "[jsonc]": {
-    "editor.defaultFormatter": "j-brooke.fracturedjsonvsc"
+    "editor.defaultFormatter": "vscode.json-language-features",
+    "editor.formatOnSave": false,
+    "editor.formatOnPaste": false,
+    "editor.formatOnType": false,
   },
-  "[php]"   : {"editor.defaultFormatter": "vscode.php-language-features"},
-  "[python]": {"editor.tabSize": 4},
+  "[php]": {
+    "editor.defaultFormatter": "vscode.php-language-features",
+  },
+  "[python]": {
+    "editor.tabSize": 4,
+  },
   "[markdown]": {
     "diffEditor.ignoreTrimWhitespace": false,
     "diffEditor.wordWrap": "on",
     "editor.defaultFormatter": "DavidAnson.vscode-markdownlint",
-    "editor.quickSuggestions": {"other": "on"},
+    "editor.quickSuggestions": {
+      "other": "on",
+    },
     "editor.smartSelect.selectLeadingAndTrailingWhitespace": true,
     "editor.trimAutoWhitespace": false,
     "editor.wordWrap": "wordWrapColumn",
     "editor.wordWrapColumn": 150,
     "files.trimFinalNewlines": false,
-    "files.trimTrailingWhitespace": false
+    "files.trimTrailingWhitespace": false,
   },
-  "[xml]": {"editor.defaultFormatter": "DotJoshJohnson.xml"},
-  "files.associations": {"config.sample.json": "jsonc"},
+  "[xml]": {
+    "editor.defaultFormatter": "redhat.vscode-xml",
+  },
+  "files.associations": {
+    "*.json": "json",
+    "config.sample.json": "jsonc"
+  },
   "fracturedjsonvsc.v3.AlwaysExpandDepth": 1,
   "fracturedjsonvsc.v3.AllowTrailingCommas": true,
   "fracturedjsonvsc.v3.CommentPolicyForJSON": "TreatAsError",
   "fracturedjsonvsc.v3.MaxInlineComplexity": 2,
-  "cSpell.words": ["Choco", "typeof"]
+  "cSpell.words": [
+    "Choco",
+    "typeof"
+  ],
 }

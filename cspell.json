@@ -1,0 +1,29 @@
+{
+    "version": "0.2",
+    "ignorePaths": [],
+    "dictionaryDefinitions": [],
+    "dictionaries": [
+        "en_US",
+        "companies",
+        "softwareTerms",
+        "misc",
+        "typescript",
+        "node",
+        "php",
+        "go",
+        "python",
+        "powershell",
+        "html",
+        "css",
+        "cpp",
+        "csharp",
+        "latex",
+        "bash",
+        "fonts",
+        "filetypes",
+        "npm"
+    ],
+    "words": [],
+    "ignoreWords": [],
+    "import": []
+}

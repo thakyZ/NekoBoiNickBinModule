@@ -57,12 +57,12 @@ Param(
   $Force = $False
 )
 
-If ($Null -ne $Output -and $Output -ne "" -and (Get-Item -LiteralPath $Path).FullName -eq (Get-Item -LiteralPath $Output).FullName) {
+If ($Null -ne $Output -and $Output -ne "" -and (Test-Path -Path $Output -PathType Leaf) -and (Get-Item -LiteralPath $Path).FullName -eq (Get-Item -LiteralPath $Output).FullName) {
   Write-Error -Message "Input `$Path and `$Output path are the extact same.";
   Exit 1;
 }
 
-If ((Test-Path -LiteralPath $Path -PathType Container)) {
+If (Test-Path -LiteralPath $Path -PathType Container) {
   Write-Error -Message "Input path, `"$($Path)`", is a folder.";
   Exit 1;
 } ElseIf (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {

@@ -487,16 +487,35 @@ FodyWeavers.xsd
 # End of https://www.toptal.com/developers/gitignore/api/linux,macos,visualstudio,visualstudiocode,windows
 
 # Custom rules (everything added below won't be overriden by 'Generate .gitignore File' if you use 'Update' option)
+# All Windows binary files
 *.exe
 *.dll
+
+# All certificate files
 *.cer
 *.pvk
+
+# Personal settings config file.
 [Ss]ettings.json
+[Cc]onfig.json
+
+# Allow the Visual Studio code settings config file.
 !.vscode/[Ss]ettings.json
+
+# All backup files.
 *.bak
+*.bak.*
+*.*.bak
+
+# Auto Audio Repeater config files and their backups.
 [Aa]uto[Aa]udio[Rr]epeater.cfg
 [Aa]uto[Aa]udio[Rr]epeater.*.cfg
+
+# Python 3 bin folder cache file.
 [Pp]ython3_[Bb]in_[Rr]eldir.txt
-[Cc]onfig.json
+
+# Allow the Visual Studio Code test folder.
 !.vscode/test
-.mypy_cache
+
+# Any cache directory.
+.*_cache/

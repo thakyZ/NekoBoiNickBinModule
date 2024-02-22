@@ -12,8 +12,8 @@
       "args": []
     },
     {
-      "name"   : "PowerShell: Test Current File",
-      "type"   : "PowerShell"                   ,
+      "name": "PowerShell: Test Current File",
+      "type": "PowerShell",
       "request": "launch",
       "script": "${file}",
       "args": []
@@ -23,7 +23,11 @@
       "type": "PowerShell",
       "request": "launch",
       "script": "${workspaceFolder}\\Export-ChocoConfig.ps1",
-      "args": ["-Path $HOME\\Downloads\\n\\choco-export.xml", "-SaveArguments", "-IncludeVersion"]
+      "args": [
+        "-Path $HOME\\Downloads\\n\\choco-export.xml",
+        "-SaveArguments",
+        "-IncludeVersion"
+      ]
     },
     {
       "name": "PowerShell: Test Export-ChocoConfig",
@@ -32,7 +36,7 @@
       "script": "${workspaceFolder}\\Export-ChocoConfig.ps1",
       "args": [
         "-Path $HOME\\Downloads\\n\\choco-export.xml",
-        "-SaveArguments"                             ,
+        "-SaveArguments",
         "-IncludeVersion"
       ]
     },
@@ -44,11 +48,22 @@
       "args": []
     },
     {
-      "name"   : "PowerShell: Test Unblock-Files"       ,
-      "type"   : "PowerShell"                           ,
-      "request": "launch"                               ,
-      "script" : "${workspaceFolder}\\Unblock-Files.ps1",
-      "args": ["-Path $HOME\\Pictures -Verbose -Recurse"]
+      "name": "PowerShell: Test Unblock-Files",
+      "type": "PowerShell",
+      "request": "launch",
+      "script": "${workspaceFolder}\\Unblock-Files.ps1",
+      "args": [
+        "-Path $HOME\\Pictures -Verbose -Recurse"
+      ]
+    },
+    {
+      "name": "PowerShell: Test Sort-ItemsInU",
+      "type": "PowerShell",
+      "request": "launch",
+      "script": "${workspaceFolder}\\Sort-ItemsInU.ps1",
+      "args": [
+        "-Debug"
+      ],
     }
   ]
 }

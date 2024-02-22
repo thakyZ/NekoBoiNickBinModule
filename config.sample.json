@@ -5,8 +5,8 @@
   },
   "Installs": {
     "DoubleVision": "doubleVision",
-    "pngCrush"    : "pngcrush"    ,
-    "Ruby"        : "gem"
+    "pngCrush": "pngcrush",
+    "Ruby": "gem"
   },
   "AudioRepeaterSettings": {
     "Current": {
@@ -45,8 +45,8 @@
     {
       "Name": "GitHub",
       "Addresses": [
-        "api.github.com"           ,
-        "github.com"               ,
+        "api.github.com",
+        "github.com",
         "raw.githubusercontent.com"
       ],
       "Token": "..."

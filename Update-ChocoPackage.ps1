@@ -45,7 +45,8 @@ Export-ChocoConfig -Path $ExportBackup -SaveArguments
 
 Function Get-LocalOutdatedPackageInfo {
   try {
-    Return (& $Choco.Source "outdated" "--limit-output" "--confirm");
+    $Output = (& $Choco.Source "outdated" "--limit-output" "--confirm");
+    Return ($Output | Where-Object { $Exclude -notcontains $_.Split("|")[0]});
   } catch {
     Write-Error -Message "Failed to run `"choco outdated --limit-output --confirm`"." -Exception $_.Exception;
     Write-Host -ForegroundColor Red -Object "$($_.ScriptStackTrace)"
@@ -59,22 +60,64 @@ Function Invoke-BypassPackageInstallDir {
     $PackageInfo,
     [string]
     $Arguments,
+    [string]
+    $NbnArguments,
     [bool]
     $Silent = $False
   )
 
-  # TODO: Implement this code, must run between starting and confirming the install and installing. Look into asking for confirm but run this code, and then confirm.
-  <#
-  $Null = New-Item -ItemType Directory -Path "C:\ProgramData\chocolatey\lib\<package>" -ErrorAction SilentlyContinue;
-  $Null = New-Item -ItemType Directory -Path "C:\ProgramData\chocolatey\lib\<package>\tools" -ErrorAction SilentlyContinue;
-  Invoke-WebRequest -Uri "https://github.com/Jarcho/chocolatey-packages/raw/master/<package>/tools/chocolateyinstall.ps1" -OutFile "C:\ProgramData\chocolatey\lib\<package>\tools\chocolateyinstall.ps1" -ErrorAction Stop;
-  $TempText = (Get-Content -Path "C:\ProgramData\chocolatey\lib\<package>\tools\chocolateyinstall.ps1");
-  $TempText = ($TempText -Replace '^\$toolsDir = "\$\(Split-Path -Parent (.*)\)"$', '$toolsDir = "<packageInstallDir>";
-  Write-Output $1 | Out-Host;');
-  $TempText = ($TempText -Replace ' = \$toolsDir', ' = "<packageInstallDir>"');
-  $TempText | Out-File -FilePath "C:\ProgramData\chocolatey\lib\<package>\tools\chocolateyinstall.ps1";
-  (Get-Content -Path "C:\ProgramData\chocolatey\lib\<package>\tools\chocolateyinstall.ps1")
-  #>
+  $WebRequest = $Null;
+
+  $InstallFile = (Join-Path -Path "C:\" -ChildPath "ProgramData" -AdditionalChildPath @("chocolatey", "lib", "$($PackageInfo.PackageName)", "tools", "chocolateyinstall.ps1"));
+
+  Try {
+    $Null = New-Item -ItemType Directory -Path (Join-Path -Path "C:\" -ChildPath "ProgramData" -AdditionalChildPath @("chocolatey", "lib", "$($PackageInfo.PackageName)")) -ErrorAction SilentlyContinue;
+    $Null = New-Item -ItemType Directory -Path (Join-Path -Path "C:\" -ChildPath "ProgramData" -AdditionalChildPath @("chocolatey", "lib", "$($PackageInfo.PackageName)", "tools")) -ErrorAction SilentlyContinue;
+
+    While ($Null -eq $WebRequest -or $WebRequest.StatusCode -ne 200 -or $WebRequest.StatusCode -ne -1) {
+      $WebRequest = (Invoke-WebRequest -Uri "https://github.com/Jarcho/chocolatey-packages/raw/master/$($PackageInfo.PackageName)/tools/chocolateyinstall.ps1" -OutFile $InstallFile -ErrorAction SilentlyContinue);
+
+      If ($WebRequest.StatusCode -ne 200) {
+        Write-Warning -Message "Failed to fetch `"chocolateyinstall.ps1`" from `"https://github.com/Jarcho/chocolatey-packages/raw/master/$($PackageInfo.PackageName)/tools/chocolateyinstall.ps1`"";
+        $ManualInput = (Read-Host -Prompt "Custom URL");
+
+        If ($ManualInput -match "https:\/\/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/=]*)?\/tools\/chocolateyinstall\.ps1") {
+          $WebRequest = (Invoke-WebRequest -Uri $ManualInput -OutFile $InstallFile -ErrorAction SilentlyContinue);
+        } ElseIf ($ManualInput -eq "quit" -or $ManualInput -eq "exit" -or $ManualInput -eq "q") {
+          $WebRequest = @{ StatusCode = -1 };
+        } Else {
+          $WebRequest = $Null;
+        }
+      }
+    }
+
+    If ($WebRequest.StatusCode -eq -1) {
+      Return $False;
+    }
+
+    $TempText = (Get-Content -Path $InstallFile);
+    $TempText = ($TempText -Replace "^\`$toolsDir = `"\`$\(Split-Path -Parent (.*)\)`"`$", "`$toolsDir = `"$($NbnArguments.InstallDir)`";`nWrite-Output `$1 | Out-Host;");
+    $TempText = ($TempText -Replace " = \`$toolsDir", " = `"$($NbnArguments.InstallDir)`"");
+    $TempText | Out-File -FilePath $InstallFile;
+
+    If ($DebugPreferences -ne "SilentlyContinue") {
+      Write-Debug -Message "Contents patched `"chocolateyinstall.ps1`": ";
+      Write-Debug -Message (Get-Content -Path $InstallFile);
+      $Okay = (Read-Host -Prompt "Is this okay? [Y/n]");
+      If ($Okay.ToLower() -eq "n") {
+        Write-Host -Object "Quitting..."
+        Return $False;
+      }
+    }
+  } Catch {
+    If ($Null -eq $WebRequest) {
+      Write-Error -Exception $_.Exception -Message "Failed to create package directory or something else`n$($_.Exception.Message)";
+      Return $False;
+    }
+
+    Write-Error -Exception $_.Exception -Message "Failed to invoke web request (Status Code: $($WebRequest.StatusCode))`n$($_.Exception.Message)";
+    Return $False;
+  }
 }
 
 Function Invoke-UpdatePackage {
@@ -120,7 +163,7 @@ Function Invoke-UpdatePackage {
 
     If ($Confirmed) {
       $Process = (Start-Process -NoNewWindow -FilePath $Choco.Source -ArgumentList $_Arguments -PassThru -ErrorAction SilentlyContinue);
-      $Process.WaitForExit()
+      $Process.WaitForExit();
       $ExitCode = $LASTEXITCODE;
       If ($Process.HasExited -eq $True) {
         Write-Debug -Message "`$Process exited with code; $($ExitCode).";
@@ -128,7 +171,7 @@ Function Invoke-UpdatePackage {
         Return $ExitCode;
       } Else {
         Write-Host "Invoke-UpdatePackage: `"Process has not exited properly and reached the end.`"";
-        Throw "Process has not exited properly and reached the end."
+        Throw "Process has not exited properly and reached the end.";
       }
     }
   } Catch {

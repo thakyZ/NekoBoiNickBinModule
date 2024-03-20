@@ -1,4 +1,5 @@
 {
+    "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
     "version": "0.2",
     "ignorePaths": [],
     "dictionaryDefinitions": [],
@@ -23,7 +24,8 @@
         "filetypes",
         "npm"
     ],
-    "words": [],
+    "words": ["dwebp","PixivUtil","Pixiv"],
     "ignoreWords": [],
+    "ignoreRegExpList": ["(?<=\\$env:|%|\\))APROG_DIR(?=%|\\()?","(?<=\\$env:|%|\\))APROG_LIST(?=%|\\()?"],
     "import": []
 }

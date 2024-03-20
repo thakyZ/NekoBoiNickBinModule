@@ -106,6 +106,7 @@ Process {
       }
     }
   }
+
   Function Start-Discord {
     Param(
       # Specifies which discord build to start the process of.
@@ -129,21 +130,61 @@ Process {
     }
   }
 
-  $script:TempDirectory = (Join-Path -Path $env:Temp -ChildPath "update_better_discord")
+  Function Get-DiscordPath {
+    [CmdletBinding()]
+    Param(
+      # Specifies which discord build to start the process of.
+      [Parameter(Mandatory = $True,
+                 HelpMessage = "Which discord build to start the process of.")]
+      [Alias("Discord")]
+      [ValidateSet("Stable", "PTB", "Canary")]
+      [System.String]
+      $Branch
+    )
+
+    $Discord = $Null;
+
+    If ($Branch.ToLower() -eq "stable") {
+      $Discord = "Discord"
+    } ElseIf ($Branch.ToLower() -eq "ptb") {
+      $Discord = "DiscordPTB"
+    } ElseIf ($Branch.ToLower() -eq "canary") {
+      $Discord = "DiscordCanary"
+    }
+
+    $DiscordPath = (Get-ChildItem -LiteralPath (Join-Path -Path $env:LocalAppData -ChildPath $Discord.ToLower()) -Directory | Where-Object { ($_.BaseName -split "\.").Length -gt 1 } | Sort-Object -Property BaseName -Descending | Select-Object -First 1);
+    $ModulePath = (Join-Path -Path $DiscordPath -ChildPath "modules");
+    $CoreWrap = (Get-ChildItem -LiteralPath $ModulePath -Directory | Where-Object { $_.BaseName -match ".*discord_desktop_core.*" } | Sort-Object -Property BaseName -Descending | Select-Object -First 1);
+    Return (Get-Item -LiteralPath (Join-Path -Path $CoreWrap -ChildPath "discord_desktop_core"));
+  }
+
+  $InstallLocation = (Join-Path -Path $env:AppData -ChildPath "BetterDiscord" -AdditionalChildPath @("data", "betterdiscord.asar"));
+  $script:TempDirectory = (Join-Path -Path $env:Temp -ChildPath "update_better_discord");
+
   If ($FromSource) {
     Push-Location -LiteralPath (Join-Path -Path $local:Development -ChildPath "..");
 
     If (-not (Test-Path -LiteralPath (Join-Path -Path $local:Development -ChildPath ".."))) {
-      & "$($Git)" checkout --recurse-submodules "https://github.com/BetterDiscord/BetterDiscord.git" "BetterDiscord";
+      Start-Process -FilePath $Git.Source -Wait -WorkingDirectory $PWD -ArgumentList @("checkout", "--recurse-submodules", "https://github.com/BetterDiscord/BetterDiscord.git", "BetterDiscord");
     }
 
     Pop-Location;
 
     Push-Location -LiteralPath $local:Development;
 
-    & "$($Pnpm)" install;
+    Start-Process -FilePath $Pnpm.Source -Wait -WorkingDirectory $PWD -ArgumentList @("install");
+
+    # Build Better Discord
+
+    $DistDirectory = (Get-Item -Path (Join-Path -Path $PWD -ChildPath "dist"));
 
     Pop-Location;
+
+    Stop-Discord -Branch $InstallInto;
+
+    # Install betterdiscord.asar
+    Move-Item -Force -LiteralPath (Join-Path -Path $DistDirectory -ChildPath "betterdiscord.asar") -Destination $InstallLocation;
+
   } Else {
     Try {
       $Headers = @{
@@ -159,26 +200,34 @@ Process {
       $WebRequest = (Invoke-WebRequest -Uri "https://github.com/BetterDiscord/BetterDiscord/releases/latest/download/betterdiscord.asar" -Headers $Headers -SkipHttpErrorCheck -ErrorAction SilentlyContinue -UserAgent ([Microsoft.PowerShell.Commands.PSUserAgent]::Chrome));
 
       If ($WebRequest.StatusCode -ne 200) {
-        Throw "The web request returned with status code $($WebRequest.StatusCode)";
+        Throw "❌ The web request returned with status code $($WebRequest.StatusCode)";
       } Else {
-        New-Item -Path $script:TempDirectory -ItemType Directory -ErrorAction SilentlyContinue;
+        New-Item -Path $script:TempDirectory -ItemType Directory -ErrorAction SilentlyContinue | Out-Null;
 
         [System.IO.File]::WriteAllBytes("$(Join-Path -Path $script:TempDirectory -ChildPath "betterdiscord.asar")", $WebRequest.Content);
 
-        Stop-Discord -Branch $InstallInto
-
-        $InstallLocation = (Join-Path -Path $env:AppData -ChildPath "BetterDiscord" -AdditionalChildPath @("data", "betterdiscord.asar"));
+        Stop-Discord -Branch $InstallInto;
 
         Move-Item -Force -LiteralPath (Join-Path -Path $script:TempDirectory -ChildPath "betterdiscord.asar") -Destination $InstallLocation;
-
-        Start-Discord -Branch $InstallInto
-
-        Remove-Item -Recurse -Path $script:TempDirectory;
       }
     } Catch {
-      Throw
+      Write-Error -Exception $_.Exception -Message "❌ $($_.Exception.Message)";
     }
   }
+
+  $DiscordPath = (Get-DiscordPath -Branch $InstallInto);
+
+  Try {
+    $IndexFile = (Get-Item -LiteralPath (Join-Path -Path $DiscordPath -ChildPath "index.js"));
+    # cSpell:disable-next-line
+    "require(`"$(($InstallLocation -replace '\\', '\\') -replace '\"', '\"')`");`nmodule.exports = require(`"./core.asar`");" | Out-File -FilePath $IndexFile;
+  } Catch {
+    Write-Error -Exception $_.Exception -Message "❌ Unable to inject shims into $($DiscordPath)`n❌ $($_.Exception.Message)";
+  }
+
+  Start-Discord -Branch $InstallInto;
+
+  Remove-Item -Recurse -Path $script:TempDirectory;
 }
 End {
   Remove-Variable "Config" -Scope Script -ErrorAction SilentlyContinue

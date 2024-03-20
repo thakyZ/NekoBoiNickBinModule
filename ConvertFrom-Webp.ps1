@@ -8,16 +8,19 @@ Param(
              HelpMessage = "Path to one or more locations.")]
   [Alias("PSPath")]
   [ValidateNotNullOrEmpty()]
-  [string[]]
+  [System.String[]]
   $Path,
   # Specifies to recursively look for webp files.
   [Parameter(Mandatory = $False,
-             Position = 1,
-             ValueFromPipelineByPropertyName = $True,
              HelpMessage = "Recursively look for webp files.")]
   [Alias("R")]
   [switch]
-  $Recurse
+  $Recurse,
+  # Specifies a path to a custom dwebp.exe file.
+  [Parameter(Mandatory = $False,
+             HelpMessage = "A path to a custom dwebp.exe file.")]
+  [System.String]
+  $Dwebp = $Null
 )
 
 Class FileMetaData {
@@ -116,7 +119,7 @@ Function Test-OutputFileExists {
                HelpMessage = "Path to one or more locations.")]
     [ValidateNotNullOrEmpty()]
     [Alias("PSPath")]
-    [string]
+    [System.String]
     $Path,
     # Specifies a path to one or more locations. Wildcards are permitted.
     [Parameter(Mandatory = $True,
@@ -128,7 +131,7 @@ Function Test-OutputFileExists {
     [ValidateNotNullOrEmpty()]
     [SupportsWildcards()]
     [Alias("PathWildcard", "PSPathWildcards", "PSPathWildcard")]
-    [string]
+    [System.String]
     $PathWildcards
   )
 
@@ -227,11 +230,20 @@ Function Get-OutputPath {
 
 $Items = @();
 
-$Dwebp = (Get-Command -Name "dwebp" -ErrorAction SilentlyContinue);
-
 If ($Null -eq $Dwebp) {
-  Write-Error -Message "Could not find program `"dwebp`" on system environment path.";
-  Exit 1;
+  $Dwebp = (Get-Command -Name "dwebp" -ErrorAction SilentlyContinue);
+
+  If ($Null -eq $Dwebp) {
+    Write-Error -Message "Could not find program `"dwebp`" on system environment path.";
+
+    Exit 1;
+  }
+} Else {
+  If (Test-Path -LiteralPath $Dwebp -PathType Leaf) {
+    $Dwebp = @{ Source = (Resolve-Path -Path $Dwebp) };
+  } Else {
+    Write-Error -Message "Could not find program `"$($Dwebp)`" as a executable.";
+  }
 }
 
 If ($Recurse) {
@@ -243,7 +255,7 @@ If ($Recurse) {
 ForEach ($Item in $Items) {
   Try {
     $MetaData = (Get-FileMetaData -Path $Item.FullName);
-    $OutputPath = (Get-OutputPath -Path(Join-Path -Path $Item.Directory.FullName -ChildPath "$($Item.BaseName).png"));
+    $OutputPath = (Get-OutputPath -Path (Join-Path -Path $Item.Directory.FullName -ChildPath "$($Item.BaseName).png"));
     & "$($Dwebp)" "$($Item.Fullname)" "-o" $OutputPath;
     Start-Sleep -Milliseconds 500;
     Remove-Item $Item.FullName;

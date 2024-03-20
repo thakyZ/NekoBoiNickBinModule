@@ -27,10 +27,10 @@ Begin {
   $CloudFlare = $True
   $CloudFlareApi = "$($HOME)/.config/certbot/cloudflare.ini"
   $CloudFlareSettings = "$($HOME)/.config/certbot/cloudflare_settings.cfg"
-  $CloudFlareZone = "9d4f444d92f6b3e8a4c30e60a2f13db6"
+  $CloudFlareZone = "00000000000000000000000000000000"
   $CloudFlareDefaultSsl = "strict"
   $CloudFlareRenewSsl = "flexible"
-  $CloudFlareEmail = "thakyz@outlook.com"
+  $CloudFlareEmail = "user@example.com"
 
   $CF_Token = $((Get-Content -LiteralPath $CloudFlareApi | Select-String "dns_cloudflare_api_token") -Replace "dns_cloudflare_api_token = ", "")
   $env:CF_Token = $CF_Token;
@@ -53,7 +53,7 @@ Process
       $local:error += "messages: $($local:data.messages.code) - $($local:data.messages.message)"
       Throw $local:error
     }
-    $local:expiresOn = ($local:data.result.Where({ $_.hosts -contains "nekogaming.xyz" }).certificates.Where({ $_.hosts -contains "nekogaming.xyz" }).expires_on);
+    $local:expiresOn = ($local:data.result.Where({ $_.hosts -contains "example.com" }).certificates.Where({ $_.hosts -contains "example.com" }).expires_on);
     $local:dateNow = ([System.DateTime]::Now);
     Return ($local:expiresOn -le $local:dateNow);
   }
@@ -168,7 +168,7 @@ Process
 
 #   $local:Cmd = "$($CertBot) certonly --dns-cloudflare --dns-cloudflare-credentials=`"$($CloudFlareApi)`" -d $($Domain) -q"
 #   $local:Cmd = "$($CertBot) certonly --dns-cloudflare --manual --preferred-challenges dns -d $($Domain) -q";
-    $local:Cmd = "$($ACME) --debug 2 --ocsp-must-staple --keylength 4096 --issue --dns dns_cf $($Domain) --server letsencrypt --key-file /etc/letsencrypt/live/nekogaming.xyz/privkey.pem --fullchain-file /etc/letsencrypt/live/nekogaming.xyz/fullchain.pem"
+    $local:Cmd = "$($ACME) --debug 2 --ocsp-must-staple --keylength 4096 --issue --dns dns_cf $($Domain) --server letsencrypt --key-file /etc/letsencrypt/live/example.com/privkey.pem --fullchain-file /etc/letsencrypt/live/example.com/fullchain.pem"
 
     $local:data = (& "$($local:Cmd)");
 
@@ -187,7 +187,7 @@ Process
     $local:exitCode = 0;
     If ($CloudFlare -eq $True) {
 #     $local:Domains = ((((& "$($CertBot)" certificates | Select-String -Pattern "Domains: .*\n.*\(VALID") -Replace "[ \t]*Domains: ", "") -Replace " *Expiry Date: [0-9]\+-[0-9]\+-[0-9]\+ [0-9]\+:[0-9]\+:[0-9]\++[0-9]\+:[0-9]\+ \(VALID", "") -Replace "\0", "")
-      $local:Domains = @("nekogaming.xyz", "'*.nekogaming.xyz'");
+      $local:Domains = @("example.com", "'*.example.com'");
       $local:Attached = "";
       $local:Expired = Test-SslExpire;
 

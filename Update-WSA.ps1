@@ -1,154 +1,236 @@
 [CmdletBinding()]
 Param()
 
+# cSpell:word vhdx, Magisk, Gapps,
+# cSpell:ignoreRegExp /WindowsSubsystemForAndroid_[\d\w]+/
+# cSpell:ignoreRegExp /(?<=wsa:\\\/\\\/com\\\.)topjohnwu(?=\\\.magisk)/
+# cSpell:ignoreRegExp /(?<=wsa:\\\/\\\/io\\\.github\\\.)huskydg(?=\\\.magisk)/
+
 Begin {
-    Function Exit-WithCode {
-        Param(
-            [System.Int32]
-            $Code = 0,
-            [System.String]
-            $Message = "",
-            [Switch]
-            $Throw = $False
-        )
+  . "$(Join-Path -Path $PSScriptRoot -ChildPath "Exit-WithCode.ps1")";
+  . "$((Join-Path -Path (Get-Item -Path $Profile).Directory -ChildPath "Utils.ps1"))";
 
-        If ($Throw) {
-            Write-Error -Message $Message;
-            $Code = 1;
-        }
-        Pop-Location -ErrorAction SilentlyContinue;
-        Exit $Code
-    }
+  [System.Object] $script:Config = (Get-Config -Path (Join-Path -Path $PSScriptRoot -ChildPath "config.json"));
+  [System.Boolean]$script:UseToken = $True;
+  [System.String] $script:Token = $script:Config.Tokens.Where({ $_.Addresses -contains "github.com" });
 
-    Function Write-Header {
-        Write-Host -ForegroundColor Red   "#############################################################################################################";
-        Write-Host -ForegroundColor Red   "#                                                                                                           #";
-        Write-Host -ForegroundColor Red   "# " -NoNewLine;
-        Write-Host -ForegroundColor White   "Be sure to backup your save file!!!" -NoNewLine;
-        Write-Host -ForegroundColor Red                                        "                                                                       #";
-        Write-Host -ForegroundColor Red   "#                                                                                                           #";
-        Write-Host -ForegroundColor Red   "#############################################################################################################";
-        Write-Host -ForegroundColor Green "https://github.com/MustardChef/WSABuilds/blob/master/Documentation/WSABuilds/Backup%20and%20Restore.md";
-        $Confirm = (Read-Host -Prompt "Continue (Y/N)")
-        If ($Confirm -match "[Yy](?:[Ee][Ss])?") {
-            Return $True;
-        }
-        Return $False;
+  If ($script:Token.Count -ne 0) {
+    $script:UseToken = $False;
+  }
+
+  Remove-Variable -Scope Script -Name "Config";
+  Function Write-Header {
+    Write-Host -ForegroundColor Red "#############################################################################################################";
+    Write-Host -ForegroundColor Red "#                                                                                                           #";
+    Write-Host -ForegroundColor Red "# " -NoNewline;
+    Write-Host -ForegroundColor White "Be sure to backup your save file!!!" -NoNewline;
+    Write-Host -ForegroundColor Red "                                                                       #";
+    Write-Host -ForegroundColor Red "#                                                                                                           #";
+    Write-Host -ForegroundColor Red "#############################################################################################################";
+    Write-Host -ForegroundColor Green "https://github.com/MustardChef/WSABuilds/blob/master/Documentation/WSABuilds/Backup%20and%20Restore.md";
+    $Confirm = (Read-Host -Prompt "Continue (Y/N)")
+    If ($Confirm -match "[Yy](?:[Ee][Ss])?") {
+      Return $True;
     }
-    $script:TempFolder = (Join-Path -Path $HOME -ChildPath "Downloads" -AdditionalChildPath @("n", "WSA-temp"));
-    If (Test-Path -LiteralPath $script:TempFolder -PathType Container) {
-       Remove-Item -Recurse $script:TempFolder -ErrorAction Stop;
-    }
-    New-Item -Path $script:TempFolder -ItemType Directory -ErrorAction Stop | Out-Null;
-    Push-Location $script:TempFolder;
-    Stop-Service "WSAService" -ErrorAction SilentlyContinue;
+    Return $False;
+  }
+  $script:TempFolder = (Join-Path -Path $HOME -ChildPath ".WSA_backup");
+  If (Test-Path -LiteralPath $script:TempFolder -PathType Container) {
+    Remove-Item -Recurse $script:TempFolder -ErrorAction Stop;
+  }
+  New-Item -Path $script:TempFolder -ItemType Directory -ErrorAction Stop | Out-Null;
+  $script:LocationStackName = "UpdateWSA"
+  Push-Location -LiteralPath $script:TempFolder -StackName $script:LocationStackName;
+  Stop-Service "WSAService" -ErrorAction SilentlyContinue;
 }
 Process {
-    If (-not (Write-Header)) {
-        Exit-WithCode -Code 0
+  Function Start-SelectionDialog {
+    [CmdletBinding()]
+    [OutputType([System.String])]
+    Param(
+      # Specifies the list of releases from GitHub API.
+      [Parameter(Mandatory = $True,
+        Position = 0,
+        HelpMessage = "The list of releases from GitHub API.")]
+      [System.Object[]]
+      $ListOfReleases
+    )
+
+    [System.String]$Output = $Null;
+
+    If ($Null -eq (Get-Command -Name "Get-SystemArchitecture" -ErrorAction SilentlyContinue)) {
+      Throw "PowerShell command `"Get-SystemArchitecture`" was not found on the path.";
     }
-    $WindowsSubsystemForAndroidDirectory = ((Get-ChildItem -Path (Join-Path -Path $env:LocalAppData -ChildPath "Packages") -Directory) | Where-Object { $_.BaseName -match ".*\.WindowsSubsystemForAndroid_.*" });
 
-    If ($WindowsSubsystemForAndroidDirectory.Count -gt 1) {
-        Exit-WithCode -Throw -Message "Too many Windows Subsystem For Android Directories found in `"$(Join-Path -Path $env:LocalAppData -ChildPath "Packages")`"...";
+    If ($Null -eq (Get-Command -Name "Get-ConsolePosition" -ErrorAction SilentlyContinue)) {
+      Throw "PowerShell command `"Get-ConsolePosition`" was not found on the path.";
     }
 
-    $BackupItems = (Get-ChildItem -Path (Join-Path -Path $WindowsSubsystemForAndroidDirectory.FullName -ChildPath "LocalCache") -File -Filter "*.vhdx");
-
-    ForEach ($Item in $BackupItems) {
-        Copy-Item -Path $Item.FullName -Destination (Join-Path -Path $script:TempFolder -ChildPath $_.Name) -ErrorAction Stop;
+    If ($Null -eq (Get-Command -Name "Clear-ConsoleInArea" -ErrorAction SilentlyContinue)) {
+      Throw "PowerShell command `"Clear-ConsoleInArea`" was not found on the path.";
     }
 
-    Try {
-        $Latest = (Invoke-RestMethod -Uri "https://api.github.com/repos/MustardChef/WSABuilds/releases");
+    If ((Get-ComputerInfo | Select-Object -Expand "OsName") -match 11) {
+      $local:Finished = $False;
 
-        If ($Null -eq $Latest) {
-            Exit-WithCode -Throw -Message "Failed to find latest releases."
-        }
-
-        $DownloadUri = ($Latest.Where({ $_.name.Contains("Windows 11 x64") })[0].assets.Where({ $_.name.Contains("with-Magisk") -and $_.name.Contains("MindTheGapps") })[0].browser_download_url);
-
-        If ($Null -eq $DownloadUri) {
-            Exit-WithCode -Throw -Message "Failed to find download uri."
-        }
+      While ($local:Finished -eq $False) {
+        [PSCustomObject]$StartingPosition = (Get-ConsolePosition);
 
         Try {
-            $DownloadFile = (Invoke-WebRequest -Uri $DownloadUri -ErrorAction Stop -SkipHttpErrorCheck -PassThru -OutFile (Join-Path -Path $script:TempFolder -ChildPath "wsa.7z"))
+          [System.String]$Architecture = (Get-SystemArchitecture);
+          [System.Object[]]$Assets = $Latest.Where({ $_.name.Contains("Windows 11 $($Architecture)") })[0].assets;
+
+          [System.Int32]$Index = 0;
+
+          ForEach ($Item in $Assets) {
+            Write-Host -Object "[$($Index)] $($Item.name)"
+            $Index++;
+          }
+
+          [System.String]$PromptInput = (Read-Host -Prompt "[0-$($Index - 1)]");
+          [System.Int32]$Parsed = [System.Int32]::Parse($PromptInput);
+
+          If ($Parsed -ge 0 -and $Parsed -lt $Index) {
+            $Output = $Assets[$Parsed].browser_download_url;
+            Clear-ConsoleInArea -Start $StartingPosition -End (Get-ConsolePosition);
+            $local:Finished = $True;
+          } Else {
+            Throw "Input value was greater or less than the allowed amount.";
+          }
         } Catch {
-            Exit-WithCode -Throw -Message $_.Exception.Message;
+          Write-Error -Message $_.Exception.Message;
+          Start-Sleep -Seconds 5;
+          Clear-ConsoleInArea -Start $StartingPosition -End (Get-ConsolePosition);
         }
-    } Catch {
-       Exit-WithCode -Throw -Message $_.Exception.Message;
+      }
+
+      Remove-Variable -Scope Local -Name "Finished";
+    } Else {
+      Throw "Must be ran on a Windows 11 computer."
     }
 
-    & "$(Get-Command -Name "7z" -ErrorAction Stop)" x "$(Join-Path -Path $script:TempFolder -ChildPath "wsa.7z")"
+    Return $Output;
+  }
 
-    $script:WSAFolder = (Get-ChildItem -Path $script:TempFolder -Directory | Where-Object { $_.Name.StartsWith("WSA_") });
+  If (-not (Write-Header)) {
+    Exit-WithCode -Message "" -Code 0 -PopLocation $script:LocationStackName -CleanAllVariables;
+  }
 
-    Stop-Service "WSAService" -ErrorAction Stop;
+  $WindowsSubsystemForAndroidDirectory = ((Get-ChildItem -Path (Join-Path -Path $env:LocalAppData -ChildPath "Packages") -Directory) | Where-Object { $_.BaseName -match ".*\.WindowsSubsystemForAndroid_.*" });
 
-    Start-Process -Verb RunAs -FilePath (Get-Command -Name "powershell").Source -WorkingDirectory $script:WSAFolder -ArgumentList @("-Command", "Get-AppxPackage `"[I]MicrosoftCorporationII.WindowsSubsystemForAndroid[/I]`" | Remove-AppxPackage;Get-ChildItem -ErrorAction Stop -Path `"C:\WSA`" | ForEach-Object { Remove-Item -Recurse -Force -ErrorAction Stop -Path `$_.FullName };Get-ChildItem -ErrorAction Stop -Path `"$($script:WSAFolder)`" | ForEach-Object { Move-Item -Force -ErrorAction Stop -Path `$_.FullName -Destination (Join-Path -Path `"C:\WSA`" -ChildPath `"`$_.Name`") };") -ErrorAction Stop -Wait;
+  If ($WindowsSubsystemForAndroidDirectory.Count -gt 1) {
+    Exit-WithCode -Message "Too many Windows Subsystem For Android Directories found in `"$(Join-Path -Path $env:LocalAppData -ChildPath "Packages")`"..." -Throw -CleanAllVariables;
+  }
 
-    $script:WSAFolder = "C:\WSA"
+  $BackupItems = (Get-ChildItem -Path (Join-Path -Path $WindowsSubsystemForAndroidDirectory.FullName -ChildPath "LocalCache") -File -Filter "*.vhdx");
 
-    Pop-Location
-    Push-Location $script:WSAFolder
+  ForEach ($Item in $BackupItems) {
+    [System.String]$Destination = (Join-Path -Path $script:TempFolder -ChildPath $Item.Name);
+    Write-Host -Object "Copying `"$(Get-SimplePath -Path $Item.FullName -RelativeBasePath $WindowsSubsystemForAndroidDirectory.FullName -ReplaceWith "%WSA%")`" to `"$(Get-SimplePath -Path $Destination -RelativeBasePath $HOME -ReplaceWith "%HOME%")`""
+    Copy-Item -Path $Item.FullName -Destination $Destination -ErrorAction Stop;
+  }
 
-    $InstallPs1PrePatch = (Get-Content -Path (Get-Item -Path (Join-Path -Path $script:WSAFolder -ChildPath "Install.ps1")) -Raw);
-    $_SettingsApp           = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"shell:AppsFolder\\MicrosoftCorporationII\.WindowsSubsystemForAndroid_8wekyb3d8bbwe\!SettingsApp`"");
-    $_ComAndroidSettings    = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/com\.android\.settings`"");
-    $_ComTopJohnWuMagisk    = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/com\.topjohnwu\.magisk`"");
-    $_IoGitHubHuskyDgMagisk = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/io\.github\.huskydg\.magisk`"");
-    $_IoGitHubVvb2060Magisk = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/io\.github\.vvb2060\.magisk`"");
-    $_ComAndroidVending     = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/com\.android\.vending`"");
-    $_ComAndroidVenezia     = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/com\.amazon\.venezia`"");
-
-    If ($_SettingsApp.Matches.Count -gt 0) {
-        $InstallPs1PrePatch = ($InstallPs1PrePatch -Replace " *Start-Process `"shell:AppsFolder\\MicrosoftCorporationII\.WindowsSubsystemForAndroid_8wekyb3d8bbwe\!SettingsApp`"", "");
+  Try {
+    [System.String]$RestCommand = "Invoke-RestMethod -Uri `"https://api.github.com/repos/MustardChef/WSABuilds/releases`" -UserAgent ([Microsoft.PowerShell.Commands.PSUserAgent]::Chrome)";
+    If ($script:UseToken) {
+      $RestCommand += " -Authentication Bearer -Token $($script:Token)";
     }
-    If ($_ComAndroidSettings.Matches.Count -gt 0) {
-        $InstallPs1PrePatch = ($InstallPs1PrePatch -Replace " *Start-Process `"wsa:\/\/com\.android\.settings`"", "");
-    }
-    If ($_ComTopJohnWuMagisk.Matches.Count -gt 0) {
-        $InstallPs1PrePatch = ($InstallPs1PrePatch -Replace " *Start-Process `"wsa:\/\/com\.topjohnwu\.magisk`"", "");
-    }
-    If ($_IoGitHubHuskyDgMagisk.Matches.Count -gt 0) {
-        $InstallPs1PrePatch = ($InstallPs1PrePatch -Replace " *Start-Process `"wsa:\/\/io\.github\.huskydg\.magisk`"", "");
-    }
-    If ($_IoGitHubVvb2060Magisk.Matches.Count -gt 0) {
-        $InstallPs1PrePatch = ($InstallPs1PrePatch -Replace " *Start-Process `"wsa:\/\/io\.github\.vvb2060\.magisk`"", "");
-    }
-    If ($_ComAndroidVending.Matches.Count -gt 0) {
-        $InstallPs1PrePatch = ($InstallPs1PrePatch -Replace " *Start-Process `"wsa:\/\/com\.android\.vending`"", "");
-    }
-    If ($_ComAndroidVenezia.Matches.Count -gt 0) {
-        $InstallPs1PrePatch = ($InstallPs1PrePatch -Replace " *Start-Process `"wsa:\/\/com\.amazon\.venezia`"", "");
-    }
-    $_SettingsApp           = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"shell:AppsFolder\\MicrosoftCorporationII\.WindowsSubsystemForAndroid_8wekyb3d8bbwe\!SettingsApp`"");
-    $_ComAndroidSettings    = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/com\.android\.settings`"");
-    $_ComTopJohnWuMagisk    = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/com\.topjohnwu\.magisk`"");
-    $_IoGitHubHuskyDgMagisk = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/io\.github\.huskydg\.magisk`"");
-    $_IoGitHubVvb2060Magisk = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/io\.github\.vvb2060\.magisk`"");
-    $_ComAndroidVending     = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/com\.android\.vending`"");
-    $_ComAndroidVenezia     = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/com\.amazon\.venezia`"");
-    If ($_SettingsApp.Matches.Count -ne 0 -or $_ComAndroidSettings.Matches.Count -ne 0 -or $_ComTopJohnWuMagisk.Matches.Count -ne 0 -or $_IoGitHubHuskyDgMagisk.Matches.Count -ne 0 -or $_IoGitHubVvb2060Magisk.Matches.Count -ne 0 -or $_ComAndroidVending.Matches.Count -ne 0 -or $_ComAndroidSettings.Matches.Count -ne 0 -or $_ComAndroidVenezia.Matches.Count -ne 0) {
-        Throw "Didn't replace properly!"
-    }
-    $InstallPs1PrePatch | Out-File -FilePath (Join-Path -Path $script:WSAFolder -ChildPath "Install.ps1")
+    $Latest = (Invoke-Expression -Command $RestCommand);
 
-    Start-Process -Verb RunAs -FilePath "C:\Windows\System32\cmd.exe" -WorkingDirectory $script:WSAFolder -ArgumentList @("/C", "`"$(Join-Path -Path $script:WSAFolder -ChildPath "Run.bat")`"") -ErrorAction Stop -Wait;
-
-    Stop-Service "WSAService" -ErrorAction Stop;
-
-    Pop-Location
-    Push-Location $script:TempFolder
-
-    ForEach ($Item in $BackupItems) {
-        Copy-Item -Path (Join-Path -Path $script:TempFolder -ChildPath $Item.Name) -Destination (Join-Path -Path $WindowsSubsystemForAndroidDirectory.Fullname -ChildPath "LocalCache" -AdditionalChildPath @($Item.Name)) -ErrorAction Continue;
+    If ($Null -eq $Latest) {
+      Throw "Failed to find latest releases.";
+    } ElseIf (($Latest | Get-Member).Name.Contains("message")) {
+      Throw "$($Latest.message)";
     }
+
+    [System.String]$DownloadUri = (Start-SelectionDialog -ListOfReleases $Latest);
+
+    If ($Null -eq $DownloadUri) {
+      Throw "Failed to find download uri."
+    }
+
+    $Headers = @{};
+
+    If ($script:UseToken) {
+      $Headers["Authentication"] = "Bearer $($script:Token)";
+    }
+
+    $DownloadFile = (Invoke-WebRequest -Uri $DownloadUri -Headers $Headers -ErrorAction Stop -SkipHttpErrorCheck -PassThru -OutFile (Join-Path -Path $script:TempFolder -ChildPath "wsa.7z"))
+
+    If ($DownloadFile.StatusCode -ne 200) {
+      Throw "The attempted download of a file at uri `"$($DownloadUri)`" returned status code $($DownloadFile.StatusCode) and description `"$($DownloadFile.StatusDescription)`"."
+    }
+  } Catch {
+    Exit-WithCode -InputObject $_ -PopLocation $script:LocationStackName -Code 1 -CleanAllVariables | Out-Host;
+  }
+
+  & "$(Get-Command -Name "7z" -ErrorAction Stop)" x "$(Join-Path -Path $script:TempFolder -ChildPath "wsa.7z")"
+
+  $script:WSAFolder = (Get-ChildItem -Path $script:TempFolder -Directory | Where-Object { $_.Name.StartsWith("WSA_") });
+
+  Stop-Service "WSAService" -ErrorAction Stop;
+
+  Start-Process -Verb RunAs -FilePath (Get-Command -Name "powershell").Source -WorkingDirectory $script:WSAFolder -ArgumentList @("-Command", "Get-AppxPackage `"[I]MicrosoftCorporationII.WindowsSubsystemForAndroid[/I]`" | Remove-AppxPackage;Get-ChildItem -ErrorAction Stop -Path `"C:\WSA`" | ForEach-Object { Remove-Item -Recurse -Force -ErrorAction Stop -Path `$_.FullName };Get-ChildItem -ErrorAction Stop -Path `"$($script:WSAFolder)`" | ForEach-Object { Move-Item -Force -ErrorAction Stop -Path `$_.FullName -Destination (Join-Path -Path `"C:\WSA`" -ChildPath `"`$_.Name`") };") -ErrorAction Stop -Wait;
+
+  $script:WSAFolder = "C:\WSA"
+
+  Pop-Location -StackName $script:LocationStackName
+  Push-Location -LiteralPath $script:WSAFolder -StackName $script:LocationStackName
+
+  $InstallPs1PrePatch = (Get-Content -Path (Get-Item -Path (Join-Path -Path $script:WSAFolder -ChildPath "Install.ps1")) -Raw);
+  $_SettingsApp = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"shell:AppsFolder\\MicrosoftCorporationII\.WindowsSubsystemForAndroid_8wekyb3d8bbwe\!SettingsApp`"");
+  $_ComAndroidSettings = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/com\.android\.settings`"");
+  $_ComTopJohnWuMagisk = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/com\.topjohnwu\.magisk`"");
+  $_IoGitHubHuskyDgMagisk = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/io\.github\.huskydg\.magisk`"");
+  $_IoGitHubVvb2060Magisk = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/io\.github\.vvb2060\.magisk`"");
+  $_ComAndroidVending = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/com\.android\.vending`"");
+  $_ComAndroidVenezia = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/com\.amazon\.venezia`"");
+
+  If ($_SettingsApp.Matches.Count -gt 0) {
+    $InstallPs1PrePatch = ($InstallPs1PrePatch -Replace " *Start-Process `"shell:AppsFolder\\MicrosoftCorporationII\.WindowsSubsystemForAndroid_8wekyb3d8bbwe\!SettingsApp`"", "");
+  }
+  If ($_ComAndroidSettings.Matches.Count -gt 0) {
+    $InstallPs1PrePatch = ($InstallPs1PrePatch -Replace " *Start-Process `"wsa:\/\/com\.android\.settings`"", "");
+  }
+  If ($_ComTopJohnWuMagisk.Matches.Count -gt 0) {
+    $InstallPs1PrePatch = ($InstallPs1PrePatch -Replace " *Start-Process `"wsa:\/\/com\.topjohnwu\.magisk`"", "");
+  }
+  If ($_IoGitHubHuskyDgMagisk.Matches.Count -gt 0) {
+    $InstallPs1PrePatch = ($InstallPs1PrePatch -Replace " *Start-Process `"wsa:\/\/io\.github\.huskydg\.magisk`"", "");
+  }
+  If ($_IoGitHubVvb2060Magisk.Matches.Count -gt 0) {
+    $InstallPs1PrePatch = ($InstallPs1PrePatch -Replace " *Start-Process `"wsa:\/\/io\.github\.vvb2060\.magisk`"", "");
+  }
+  If ($_ComAndroidVending.Matches.Count -gt 0) {
+    $InstallPs1PrePatch = ($InstallPs1PrePatch -Replace " *Start-Process `"wsa:\/\/com\.android\.vending`"", "");
+  }
+  If ($_ComAndroidVenezia.Matches.Count -gt 0) {
+    $InstallPs1PrePatch = ($InstallPs1PrePatch -Replace " *Start-Process `"wsa:\/\/com\.amazon\.venezia`"", "");
+  }
+  $_SettingsApp = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"shell:AppsFolder\\MicrosoftCorporationII\.WindowsSubsystemForAndroid_8wekyb3d8bbwe\!SettingsApp`"");
+  $_ComAndroidSettings = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/com\.android\.settings`"");
+  $_ComTopJohnWuMagisk = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/com\.topjohnwu\.magisk`"");
+  $_IoGitHubHuskyDgMagisk = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/io\.github\.huskydg\.magisk`"");
+  $_IoGitHubVvb2060Magisk = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/io\.github\.vvb2060\.magisk`"");
+  $_ComAndroidVending = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/com\.android\.vending`"");
+  $_ComAndroidVenezia = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/com\.amazon\.venezia`"");
+  If ($_SettingsApp.Matches.Count -ne 0 -or $_ComAndroidSettings.Matches.Count -ne 0 -or $_ComTopJohnWuMagisk.Matches.Count -ne 0 -or $_IoGitHubHuskyDgMagisk.Matches.Count -ne 0 -or $_IoGitHubVvb2060Magisk.Matches.Count -ne 0 -or $_ComAndroidVending.Matches.Count -ne 0 -or $_ComAndroidSettings.Matches.Count -ne 0 -or $_ComAndroidVenezia.Matches.Count -ne 0) {
+    Throw "Didn't replace properly!"
+  }
+  $InstallPs1PrePatch | Out-File -FilePath (Join-Path -Path $script:WSAFolder -ChildPath "Install.ps1")
+
+  Start-Process -Verb RunAs -FilePath "C:\Windows\System32\cmd.exe" -WorkingDirectory $script:WSAFolder -ArgumentList @("/C", "`"$(Join-Path -Path $script:WSAFolder -ChildPath "Run.bat")`"") -ErrorAction Stop -Wait;
+
+  Stop-Service "WSAService" -ErrorAction Stop;
+
+  Pop-Location -StackName $script:LocationStackName
+  Push-Location -LiteralPath $script:TempFolder -StackName $script:LocationStackName
+
+  ForEach ($Item in $BackupItems) {
+    Copy-Item -Path (Join-Path -Path $script:TempFolder -ChildPath $Item.Name) -Destination (Join-Path -Path $WindowsSubsystemForAndroidDirectory.Fullname -ChildPath "LocalCache" -AdditionalChildPath @($Item.Name)) -ErrorAction Continue;
+  }
 }
 End {
-    Pop-Location
-    Remove-Item -Recurse $script:TempFolder -ErrorAction Stop;
-    Exit-WithCode -Message "Done!";
+  Remove-Item -Recurse $script:TempFolder -ErrorAction Stop;
+  Exit-WithCode -Message "Done!" -PopLocation $script:LocationStackName -CleanAllVariables;
 }

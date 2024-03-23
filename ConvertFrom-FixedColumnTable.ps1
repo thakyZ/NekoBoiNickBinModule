@@ -74,7 +74,7 @@ Begin {
 
   # endregion
 
-  # region Turnicate lines above table header
+  # region Truncate lines above table header
 
   $script:FoundHeader = 0;
   $script:FoundHeaderIndex = 0;

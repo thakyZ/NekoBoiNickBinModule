@@ -177,46 +177,22 @@ Process {
   Pop-Location -StackName $script:LocationStackName
   Push-Location -LiteralPath $script:WSAFolder -StackName $script:LocationStackName
 
+  Write-Host -Object "Replacing:"
   $InstallPs1PrePatch = (Get-Content -Path (Get-Item -Path (Join-Path -Path $script:WSAFolder -ChildPath "Install.ps1")) -Raw);
-  $_SettingsApp = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"shell:AppsFolder\\MicrosoftCorporationII\.WindowsSubsystemForAndroid_8wekyb3d8bbwe\!SettingsApp`"");
-  $_ComAndroidSettings = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/com\.android\.settings`"");
-  $_ComTopJohnWuMagisk = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/com\.topjohnwu\.magisk`"");
-  $_IoGitHubHuskyDgMagisk = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/io\.github\.huskydg\.magisk`"");
-  $_IoGitHubVvb2060Magisk = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/io\.github\.vvb2060\.magisk`"");
-  $_ComAndroidVending = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/com\.android\.vending`"");
-  $_ComAndroidVenezia = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/com\.amazon\.venezia`"");
-
-  If ($_SettingsApp.Matches.Count -gt 0) {
-    $InstallPs1PrePatch = ($InstallPs1PrePatch -Replace " *Start-Process `"shell:AppsFolder\\MicrosoftCorporationII\.WindowsSubsystemForAndroid_8wekyb3d8bbwe\!SettingsApp`"", "");
+  $_StartProcessesMatches = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"(?:shell:AppsFolder\\.+|wsa:\/\/.+)`"");
+  If ($_StartProcessesMatches.Matches.Count -gt 0) {
+    ForEach ($Match in $_StartProcessesMatches.Matches) {
+      Write-Host -Object $Match.Value;
+      $InstallPs1PrePatch = ($InstallPs1PrePatch -Replace " *Start-Process `"(?:shell:AppsFolder\\.+|wsa:\/\/.+)`"", "");
+    }
   }
-  If ($_ComAndroidSettings.Matches.Count -gt 0) {
-    $InstallPs1PrePatch = ($InstallPs1PrePatch -Replace " *Start-Process `"wsa:\/\/com\.android\.settings`"", "");
+  $_StartProcessesMatchesAfter = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"(?:shell:AppsFolder\\.+|wsa:\/\/.+)`"");
+  If ($_StartProcessesMatchesAfter.Matches.Count -ne 0) {
+    Write-Warning -Message "Didn't replace properly!";
+    Write-Host -Object "Press any key to continue...";
+    Pause;
   }
-  If ($_ComTopJohnWuMagisk.Matches.Count -gt 0) {
-    $InstallPs1PrePatch = ($InstallPs1PrePatch -Replace " *Start-Process `"wsa:\/\/com\.topjohnwu\.magisk`"", "");
-  }
-  If ($_IoGitHubHuskyDgMagisk.Matches.Count -gt 0) {
-    $InstallPs1PrePatch = ($InstallPs1PrePatch -Replace " *Start-Process `"wsa:\/\/io\.github\.huskydg\.magisk`"", "");
-  }
-  If ($_IoGitHubVvb2060Magisk.Matches.Count -gt 0) {
-    $InstallPs1PrePatch = ($InstallPs1PrePatch -Replace " *Start-Process `"wsa:\/\/io\.github\.vvb2060\.magisk`"", "");
-  }
-  If ($_ComAndroidVending.Matches.Count -gt 0) {
-    $InstallPs1PrePatch = ($InstallPs1PrePatch -Replace " *Start-Process `"wsa:\/\/com\.android\.vending`"", "");
-  }
-  If ($_ComAndroidVenezia.Matches.Count -gt 0) {
-    $InstallPs1PrePatch = ($InstallPs1PrePatch -Replace " *Start-Process `"wsa:\/\/com\.amazon\.venezia`"", "");
-  }
-  $_SettingsApp = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"shell:AppsFolder\\MicrosoftCorporationII\.WindowsSubsystemForAndroid_8wekyb3d8bbwe\!SettingsApp`"");
-  $_ComAndroidSettings = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/com\.android\.settings`"");
-  $_ComTopJohnWuMagisk = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/com\.topjohnwu\.magisk`"");
-  $_IoGitHubHuskyDgMagisk = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/io\.github\.huskydg\.magisk`"");
-  $_IoGitHubVvb2060Magisk = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/io\.github\.vvb2060\.magisk`"");
-  $_ComAndroidVending = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/com\.android\.vending`"");
-  $_ComAndroidVenezia = ($InstallPs1PrePatch | Select-String -Pattern " *Start-Process `"wsa:\/\/com\.amazon\.venezia`"");
-  If ($_SettingsApp.Matches.Count -ne 0 -or $_ComAndroidSettings.Matches.Count -ne 0 -or $_ComTopJohnWuMagisk.Matches.Count -ne 0 -or $_IoGitHubHuskyDgMagisk.Matches.Count -ne 0 -or $_IoGitHubVvb2060Magisk.Matches.Count -ne 0 -or $_ComAndroidVending.Matches.Count -ne 0 -or $_ComAndroidSettings.Matches.Count -ne 0 -or $_ComAndroidVenezia.Matches.Count -ne 0) {
-    Throw "Didn't replace properly!"
-  }
+  Write-Host -Object "Finished"
   $InstallPs1PrePatch | Out-File -FilePath (Join-Path -Path $script:WSAFolder -ChildPath "Install.ps1")
 
   Start-Process -Verb RunAs -FilePath "C:\Windows\System32\cmd.exe" -WorkingDirectory $script:WSAFolder -ArgumentList @("/C", "`"$(Join-Path -Path $script:WSAFolder -ChildPath "Run.bat")`"") -ErrorAction Stop -Wait;
@@ -231,6 +207,7 @@ Process {
   }
 }
 End {
+  Pop-Location -StackName $script:LocationStackName
   Remove-Item -Recurse $script:TempFolder -ErrorAction Stop;
   Exit-WithCode -Message "Done!" -PopLocation $script:LocationStackName -CleanAllVariables;
 }

@@ -1,4 +1,5 @@
 [CmdletBinding()]
+[OutputType([System.Collections.Hashtable])]
 Param(
   # Specifies a string to convert.
   [Parameter(Mandatory = $False,
@@ -30,7 +31,7 @@ Process {
 End {
   $Output = @{
     Algorithm = $Algorithm;
-    Hash = $StringBuilder.ToString();
+    Hash = $StringBuilder.ToString().ToUpper();
     String = $String;
   };
   Write-Output -InputObject $Output;

@@ -1,31 +1,45 @@
 {
-    "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
-    "version": "0.2",
-    "ignorePaths": [],
-    "dictionaryDefinitions": [],
-    "dictionaries": [
-        "en_US",
-        "companies",
-        "softwareTerms",
-        "misc",
-        "typescript",
-        "node",
-        "php",
-        "go",
-        "python",
-        "powershell",
-        "html",
-        "css",
-        "cpp",
-        "csharp",
-        "latex",
-        "bash",
-        "fonts",
-        "filetypes",
-        "npm"
-    ],
-    "words": ["dwebp","PixivUtil","Pixiv"],
-    "ignoreWords": [],
-    "ignoreRegExpList": ["(?<=\\$env:|%|\\))APROG_DIR(?=%|\\()?","(?<=\\$env:|%|\\))APROG_LIST(?=%|\\()?"],
-    "import": []
+  "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
+  "version": "0.2",
+  "ignorePaths": [
+  ],
+  "dictionaryDefinitions": [
+  ],
+  "dictionaries": [
+    "en_US"        ,
+    "companies"    ,
+    "softwareTerms",
+    "misc"         ,
+    "typescript"   ,
+    "node"         ,
+    "php"          ,
+    "go"           ,
+    "python"       ,
+    "powershell"   ,
+    "html"         ,
+    "css"          ,
+    "cpp"          ,
+    "csharp"       ,
+    "latex"        ,
+    "bash"         ,
+    "fonts"        ,
+    "filetypes"    ,
+    "npm"
+  ],
+  "words": [
+    "dwebp"    ,
+    "PixivUtil",
+    "Pixiv"    ,
+    "Choco"    ,
+    "typeof"   ,
+    "pngcrush"
+  ],
+  "ignoreWords": [
+  ],
+  "ignoreRegExpList": [
+    "(?<=\\$env:|%|\\))APROG_DIR(?=%|\\()?" ,
+    "(?<=\\$env:|%|\\))APROG_LIST(?=%|\\()?"
+  ],
+  "import": [
+  ]
 }

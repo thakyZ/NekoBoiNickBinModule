@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>Disable</ImplicitUsings>
+    <Nullable>Enable</Nullable>
+    <RootNamespace>NekoBoiNick.CSharp.PowerShell.Cmdlets</RootNamespace>
+    <StartupObject>NekoBoiNick.CSharp.PowerShell.Cmdlets.Sort_ItemsInU_Program</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Management.Automation" Version="7.4.1" />
+  </ItemGroup>
+</Project>

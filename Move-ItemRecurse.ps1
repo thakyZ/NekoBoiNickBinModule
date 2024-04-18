@@ -118,17 +118,17 @@ Begin {
 
   Write-Host -Object "Querying items of source path...";
   If ($PSCmdlet.ParameterSetName -eq "Path") {
-    $EscapedPath = (ConvertTo-Escaped -LiteralPath (Resolve-Path -Path $Path -Debug:$EnableDebug -Verbose:$EnableVerbose) -Debug:$EnableDebug -Verbose:$EnableVerbose);
+    $EscapedPath = (ConvertTo-Escaped.ps1 -InputObject (Resolve-Path -Path $Path -Debug:$EnableDebug -Verbose:$EnableVerbose) -Debug:$EnableDebug -Verbose:$EnableVerbose);
   } Else {
-    $EscapedPath = (ConvertTo-Escaped -LiteralPath (Resolve-Path -Path $LiteralPath -Debug:$EnableDebug -Verbose:$EnableVerbose) -Debug:$EnableDebug -Verbose:$EnableVerbose);
+    $EscapedPath = (ConvertTo-Escaped.ps1 -InputObject (Resolve-Path -LiteralPath $LiteralPath -Debug:$EnableDebug -Verbose:$EnableVerbose) -Debug:$EnableDebug -Verbose:$EnableVerbose);
   }
   $SourceItems = (Get-ChildItem -Path $EscapedPath -Recurse -Debug:$EnableDebug -Verbose:$EnableVerbose);
   Write-Host -Object "Done.";
 
-  [System.IO.FileSystemInfo]$DestinationPath = (ConvertTo-Escaped (Resolve-Path -Path $Destination -Debug:$EnableDebug -Verbose:$EnableVerbose) -Debug:$EnableDebug -Verbose:$EnableVerbose);
+  [System.IO.FileSystemInfo]$DestinationPath = (Get-Item -Path (ConvertTo-Escaped (Resolve-Path -Path $Destination -Debug:$EnableDebug -Verbose:$EnableVerbose) -Debug:$EnableDebug -Verbose:$EnableVerbose));
   [System.IO.FileSystemInfo[]]$DestinationItems = @();
   Write-Host -Object "Querying items of destination path...";
-  $DestinationItems = (Get-ChildItem -Path $Destination -Recurse -Debug:$EnableDebug -Verbose:$EnableVerbose);
+  $DestinationItems = (Get-ChildItem -Path $Destination -Recurse -Exclude:$(If ($Null -ne $Exclude) { Return $Exclude }) -Debug:$EnableDebug -Verbose:$EnableVerbose);
   Write-Host -Object "Done.";
 }
 Process {
@@ -137,8 +137,9 @@ Process {
     Param(
       [Parameter(Mandatory = $True,
                  ParameterSetName = "Path")]
+      [Alias("Path","PSPath","APSPath")]
       [System.IO.FileSystemInfo]
-      $Path,
+      $APath,
       [Parameter(Mandatory = $True,
                  ParameterSetName = "Path")]
       [Parameter(Mandatory = $True,
@@ -156,7 +157,8 @@ Process {
     Begin {
       [System.String]$Output = "undefined";
       [System.String]$BasePathFromSource = "";
-      [System.String[]]$PathSplit = ($Path.FullName -split $ParentPath.FullName);
+      [System.String]$EscapedParentPath = [System.Text.RegularExpressions.Regex]::Escape($ParentPath.FullName);
+      [System.String[]]$PathSplit = ($APath.FullName -split "$EscapedParentPath");
       $BasePathFromSource = $PathSplit[$PathSplit.Count - 1];
     }
     Process {
@@ -164,16 +166,16 @@ Process {
     }
     End {
       If ($EnableDebug) {
-        Write-Host -Object "Get-RelativeForDestination(`"$($Path)`", `"$($ParentPath)`", `"$($Destination)`") => `"$Output`"" | Out-Host;
+        #Write-Host -Object "Get-RelativeForDestination(`"$($EscapedPath)`", `"$($ParentPath)`", `"$($Destination)`") => `"$Output`"" | Out-Host;
       }
       Write-Output -InputObject $Output;
     }
   }
 
   ForEach ($SourceItem in $SourceItems) {
-    [System.String]$PotentialDestinationPath = (Get-RelativeForDestination -Path $SourceItem -ParentPath $Path -Destination $DestinationPath);
-    If (Test-Path -Path $SourceItem.FullName -PathType Container -Verbose:$EnableVerbose -Debug:$EnableDebug) {
-      If (Test-Path -Path $PotentialDestinationPath -PathType Container -Verbose:$EnableVerbose -Debug:$EnableDebug) {
+    [System.String]$PotentialDestinationPath = (Get-RelativeForDestination -APath $SourceItem -ParentPath (Get-Item -Path $EscapedPath) -Destination $DestinationPath);
+    If (Test-Path -LiteralPath $SourceItem.FullName -PathType Container -Verbose:$EnableVerbose -Debug:$EnableDebug) {
+      If (Test-Path -LiteralPath $PotentialDestinationPath -PathType Container -Verbose:$EnableVerbose -Debug:$EnableDebug) {
         If ($EnableVerbose -or $EnableDebug) {
           Write-Verbose -Verbose -Message "Passing over container at '$($SourceItem.FullName)'"
         }
@@ -181,17 +183,17 @@ Process {
         If (Test-Path -Path $PotentialDestinationPath -PathType Leaf -Verbose:$EnableVerbose -Debug:$EnableDebug) {
           Write-Warning -Message "Path at '$PotentialDestinationPath' does not match type of '$($SourceItem.FullName)' (Expected Container got Leaf).";
         } Else {
-          Move-Item -Path $SourceItem -Destination $PotentialDestinationPath -Force:$Force -Verbose:$EnableVerbose -Debug:$EnableDebug;
+          Move-Item -LiteralPath $SourceItem -Destination $PotentialDestinationPath -Force:$Force -Verbose:$EnableVerbose -Debug:$EnableDebug;
         }
       }
-    } ElseIf (Test-Path -Path $SourceItem.FullName -PathType Leaf -Verbose:$EnableVerbose -Debug:$EnableDebug) {
+    } ElseIf (Test-Path -LiteralPath $SourceItem.FullName -PathType Leaf -Verbose:$EnableVerbose -Debug:$EnableDebug) {
       If (Test-Path -Path $PotentialDestinationPath -PathType Leaf -Verbose:$EnableVerbose -Debug:$EnableDebug) {
-        Move-Item -Path $SourceItem -Destination $PotentialDestinationPath -Force:$Force -Verbose:$EnableVerbose -Debug:$EnableDebug;
+        Move-Item -LiteralPath $SourceItem -Destination $PotentialDestinationPath -Force:$Force -Verbose:$EnableVerbose -Debug:$EnableDebug;
       } Else {
-        If (Test-Path -Path $PotentialDestinationPath -PathType Container -Verbose:$EnableVerbose -Debug:$EnableDebug) {
+        If (Test-Path -LiteralPath $PotentialDestinationPath -PathType Container -Verbose:$EnableVerbose -Debug:$EnableDebug) {
           Write-Warning -Message "Path at '$PotentialDestinationPath' does not match type of '$($SourceItem.FullName)' (Expected Leaf got Container).";
         } Else {
-          Move-Item -Path $SourceItem -Destination $PotentialDestinationPath -Verbose:$EnableVerbose -Debug:$EnableDebug;
+          Move-Item -LiteralPath $SourceItem -Destination $PotentialDestinationPath -Verbose:$EnableVerbose -Debug:$EnableDebug;
         }
       }
     }

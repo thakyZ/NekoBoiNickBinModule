@@ -14,7 +14,7 @@ Param(
   [Parameter(Mandatory = $False,
              HelpMessage = "Recursively look for webp files.")]
   [Alias("R")]
-  [switch]
+  [System.Management.Automation.SwitchParameter]
   $Recurse,
   # Specifies a path to a custom dwebp.exe file.
   [Parameter(Mandatory = $False,
@@ -46,7 +46,7 @@ Function Get-FileMetaData {
                HelpMessage = "Path to one or more locations.")]
     [ValidateNotNullOrEmpty()]
     [Alias("PSPath")]
-    [string]
+    [System.String]
     $Path
   )
 
@@ -79,7 +79,7 @@ Function Set-FileMetaData {
                HelpMessage = "Path to one or more locations.")]
     [ValidateNotNullOrEmpty()]
     [Alias("PSPath")]
-    [string]
+    [System.String]
     $Path,
     # Specifies the metadata to apply to the file.
     [Parameter(Mandatory = $True,
@@ -100,7 +100,7 @@ Function Set-FileMetaData {
     Set-ItemProperty -LiteralPath $Path -Name LastWriteTimeUtc -Value $FileMetaData.LastWriteTimeUtc;
     Set-ItemProperty -LiteralPath $Path -Name LastAccessTime -Value $FileMetaData.LastAccessTime;
     Set-ItemProperty -LiteralPath $Path -Name LastAccessTimeUtc -Value $FileMetaData.LastAccessTimeUtc;
-    Set-ItemProperty -LiteralPath $Path -Name Attributes -Value $FileMetaData.Attributes;
+    # Set-ItemProperty -LiteralPath $Path -Name Attributes -Value $FileMetaData.Attributes;
     Set-Acl -LiteralPath $Path -AclObject $FileMetaData.Acl;
   } Catch {
     Throw $_;
@@ -156,9 +156,9 @@ Function Get-LastDuplicateNameFiles {
   Param(
     # Specifies the output file path
     [Parameter(Mandatory = $True,
-      Position = 0,
-      HelpMessage = "Path to one or more locations.")]
-    [string]
+               Position = 0,
+               HelpMessage = "Path to one or more locations.")]
+    [System.String]
     $Path
   )
 
@@ -209,29 +209,85 @@ Function Get-LastDuplicateNameFiles {
   Return $OutputPath;
 }
 
-Function Get-OutputPath {
+Function Get-SimplifyName {
+  [CmdletBinding()]
+  [OutputType([System.String])]
   Param(
     # Specifies the output file path
     [Parameter(Mandatory = $True,
       Position = 0,
       HelpMessage = "Path to one or more locations.")]
-    [string]
+    [System.String]
+    $BaseName
+  )
+
+  If ($BaseName -match '(.+) \(\d+\)') {
+    Return ($BaseName -replace '(.+) \(\d+\)$', '$1');
+  }
+
+  Return $BaseName;
+}
+
+Function Get-OutputPath {
+  [CmdletBinding()]
+  # [OutputType([System.String])]
+  Param(
+    # Specifies the output file path
+    [Parameter(Mandatory = $True,
+      Position = 0,
+      HelpMessage = "Path to one or more locations.")]
+    [System.String]
     $Path
   )
 
-  $OutputPath = $Path;
-
-  If (Test-OutputFileExists -Path $OutputPath) {
-
+  Begin {
+    $OutputPath = $Path;
   }
-
-  Return $OutputPath;
+  Process {
+    Try {
+      If (Test-OutputFileExists -Path $OutputPath) {
+        [System.String]$Script = (Get-Content -LiteralPath (Join-Path -Path $PSScriptRoot -ChildPath "Get-MissingNewItem.cs") -Raw -Encoding UTF8);
+        $Job = (Start-Job -ScriptBlock {
+          [System.String]$_Script = $args[0];
+          If ($Null -eq $_Script || $_Script -eq "") {
+            Throw "`$_Script is null";
+          }
+          [System.String]$_OutputPath = $args[1];
+          If ($Null -eq $_OutputPath || $_OutputPath -eq "") {
+            Throw "`$_OutputPath is null";
+          }
+          Add-Type -Language CSharp $_Script;
+          Write-Output -InputObject ([NekoBoiNick.CSharp.PowerShell.Cmdlets.Get_MissingNewItem]::Main($_OutputPath));
+        } -ArgumentList @($Script, $OutputPath));
+        [System.String]$LastState = (Get-Job -Id $Job.Id).State;
+        While ($LastState -eq "Running") {
+          Start-Sleep -Seconds 5;
+          $LastState = (Get-Job -Id $Job.Id).State;
+        }
+        $Result = (Receive-Job -Id $Job.Id);
+        If ($LastState -ne "Completed") {
+          Remove-Job -Id $Job.Id;
+          Throw $Result;
+        }
+        $OutputPath = $Result;
+        Remove-Job -Id $Job.Id;
+      }
+    } Catch {
+      Write-Error -ErrorRecord $_ | Out-Host;
+      Throw;
+    }
+  }
+  End {
+    Return $OutputPath;
+  }
 }
 
 $Items = @();
 
+[System.Object]$_Dwebp;
+
 If ($Null -eq $Dwebp) {
-  $Dwebp = (Get-Command -Name "dwebp" -ErrorAction SilentlyContinue);
+  $_Dwebp = (Get-Command -Name "dwebp" -ErrorAction SilentlyContinue);
 
   If ($Null -eq $Dwebp) {
     Write-Error -Message "Could not find program `"dwebp`" on system environment path.";
@@ -240,7 +296,7 @@ If ($Null -eq $Dwebp) {
   }
 } Else {
   If (Test-Path -LiteralPath $Dwebp -PathType Leaf) {
-    $Dwebp = @{ Source = (Resolve-Path -Path $Dwebp) };
+    $_Dwebp = @{ Source = (Resolve-Path -Path $Dwebp) };
   } Else {
     Write-Error -Message "Could not find program `"$($Dwebp)`" as a executable.";
   }
@@ -256,13 +312,13 @@ ForEach ($Item in $Items) {
   Try {
     $MetaData = (Get-FileMetaData -Path $Item.FullName);
     $OutputPath = (Get-OutputPath -Path (Join-Path -Path $Item.Directory.FullName -ChildPath "$($Item.BaseName).png"));
-    & "$($Dwebp)" "$($Item.Fullname)" "-o" $OutputPath;
+    & "$($_Dwebp.Source)" "$($Item.Fullname)" "-o" $OutputPath;
     Start-Sleep -Milliseconds 500;
     Remove-Item $Item.FullName;
     Set-FileMetaData -Path $OutputPath -FileMetaData $MetaData;
     Start-Sleep -Seconds 1;
   } Catch {
-    Write-Error -Exception $_.Exception -Message $_.Exception.Message;
+    Throw $_;
     Break;
   }
 }

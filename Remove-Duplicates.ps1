@@ -34,25 +34,25 @@ Param(
   # Specifies a switch to include subdirectories.
   [Parameter(Mandatory = $False,
              HelpMessage = "A switch to include subdirectories.")]
-  [switch]
+  [Switch]
   $Recurse = $False,
   # Specifies a switch to keep duplicates that are in subdirectories over that which are not.
   [Parameter(Mandatory = $False,
              HelpMessage = "A switch to keep duplicates that are in subdirectories over that which are not.")]
   [Alias("Keep")]
-  [switch]
+  [Switch]
   $KeepSubdirectoryItems = $False,
   # Specifies a switch that performs a dry run of removal of files without removing anything.
   [Parameter(Mandatory = $False,
              HelpMessage = "A switch that performs a dry run of removal of files without removing anything.")]
   [Alias("Test")]
-  [switch]
+  [Switch]
   $DryRun = $False,
   # Specifies a pattern to auto remove if matching...
   [Parameter(Mandatory = $False,
              HelpMessage = "A pattern to auto remove if file name matches.")]
   [Alias("WhenMatching")]
-  [System.String]
+  [System.Object]
   $Pattern = $Null
 )
 
@@ -77,36 +77,47 @@ DynamicParam {
 
   If ($Null -ne $Pattern) {
     Try {
-      # You can specify the Regex Options via using a traditional regex string starting with a forward slash and ending in a forward slash with or without succeeding regex flags.
+      [System.Text.RegularExpressions.Regex]$script:RegexRemoveWhenMatching;
+      If ($Pattern.GetType() -eq [System.String]) {
+        # You can specify the Regex Options via using a traditional regex string starting with a forward slash and ending in a forward slash with or without succeeding regex flags.
 
-      # Set temporary default regex flags.
-      $RegexOptions = [System.Text.RegularExpressions.RegexOptions]::None;
+        # Set temporary default regex flags.
+        $RegexOptions = [System.Text.RegularExpressions.RegexOptions]::None;
 
-      # Funny, ignore regex via cSpell.
-      # cSpell:ignoreRegexp \\\/\(\[gmisnxRN\]\*\)\$
-      If ($Pattern.StartsWith("/") -and [System.Text.RegularExpressions.Regex]::IsMatch($Pattern, '\/([gmisnxRN]*)$')) {
-        $ArgumentMatches = [System.Text.RegularExpressions.Regex]::Matches($Pattern, '\/([gmisnxRN]*)$');
-        ForEach ($Flag in $ArgumentMatches.Groups[1].Value.ToCharArray()) {
-          If ($Flag -eq "i") {
-            $RegexOptions = $RegexOptions -bor  [System.Text.RegularExpressions.RegexOptions]::IgnoreCase;
-          } ElseIf ($Flag -eq "m") {
-            $RegexOptions = $RegexOptions -bor  [System.Text.RegularExpressions.RegexOptions]::Multiline;
-          } ElseIf ($Flag -eq "s") {
-            $RegexOptions = $RegexOptions -bor  [System.Text.RegularExpressions.RegexOptions]::Singleline;
-          } ElseIf ($Flag -eq "n") {
-            $RegexOptions = $RegexOptions -bor  [System.Text.RegularExpressions.RegexOptions]::ExplicitCapture;
-          } ElseIf ($Flag -eq "x") {
-            $RegexOptions = $RegexOptions -bor  [System.Text.RegularExpressions.RegexOptions]::IgnorePatternWhitespace;
-          } ElseIf ($Flag -eq "R") {
-            $RegexOptions = $RegexOptions -bor  [System.Text.RegularExpressions.RegexOptions]::RightToLeft;
-          } ElseIf ($Flag -ne "g") {
-            Write-Warning -Message "Unknown regex flag: `"$($Flag)`"";
+        # Funny, ignore regex via cSpell.
+        # cSpell:ignoreRegexp \\\/\(\[gmisnxRN\]\*\)\$
+        If ($Pattern.StartsWith("/") -and [System.Text.RegularExpressions.Regex]::IsMatch($Pattern, '\/([gmisnxRN]*)$')) {
+          $ArgumentMatches = [System.Text.RegularExpressions.Regex]::Matches($Pattern, '\/([gmisnxRN]*)$');
+          ForEach ($Flag in $ArgumentMatches.Groups[1].Value.ToCharArray()) {
+            If ($Flag -eq "i") {
+              $RegexOptions = $RegexOptions -bor  [System.Text.RegularExpressions.RegexOptions]::IgnoreCase;
+            } ElseIf ($Flag -eq "m") {
+              $RegexOptions = $RegexOptions -bor  [System.Text.RegularExpressions.RegexOptions]::Multiline;
+            } ElseIf ($Flag -eq "s") {
+              $RegexOptions = $RegexOptions -bor  [System.Text.RegularExpressions.RegexOptions]::Singleline;
+            } ElseIf ($Flag -eq "n") {
+              $RegexOptions = $RegexOptions -bor  [System.Text.RegularExpressions.RegexOptions]::ExplicitCapture;
+            } ElseIf ($Flag -eq "x") {
+              $RegexOptions = $RegexOptions -bor  [System.Text.RegularExpressions.RegexOptions]::IgnorePatternWhitespace;
+            } ElseIf ($Flag -eq "R") {
+              $RegexOptions = $RegexOptions -bor  [System.Text.RegularExpressions.RegexOptions]::RightToLeft;
+            } ElseIf ($Flag -ne "g") {
+              Write-Warning -Message "Unknown regex flag: `"$($Flag)`"";
+            }
           }
+          $Pattern = ($Pattern -replace '^/', '');
+          $Pattern = ($Pattern -replace '\/([gmisnxRN]*)$', '');
+        } ElseIf ($Pattern.ToLower() -eq "default") {
+          $Pattern = [System.Text.RegularExpressions.Regex]::new(".+ \(\d+\)\..+$", [System.Text.RegularExpressions.RegexOptions]::IgnoreCase, [System.TimeSpan]::new(1, 0, 0))
         }
-      }
 
-      # System.TimeSpan for 1 hour to limit catastrophic backtracking.
-      $script:RegexRemoveWhenMatching = [System.Text.RegularExpressions.Regex]::new($Pattern, $RegexOptions, [System.TimeSpan]::new(1, 0, 0))
+        # System.TimeSpan for 1 hour to limit catastrophic backtracking.
+        $script:RegexRemoveWhenMatching = [System.Text.RegularExpressions.Regex]::new($Pattern, $RegexOptions, [System.TimeSpan]::new(1, 0, 0))
+      } ElseIf ($Pattern.GetType() -eq [System.Text.RegularExpressions.Regex]) {
+        $script:RegexRemoveWhenMatching = $Pattern
+      } Else {
+        Throw [System.Exception]::new("Type of Pattern is not [System.String] or [System.Text.RegularExpressions.Regex]");
+      }
     } Catch {
       If ($Debug) {
         Write-Host -ForegroundColor Green -Object "Regular Expression Error: " -NoNewline;
@@ -249,13 +260,18 @@ Process {
       # Specifies a switch that removes specifically Item A.
       [Parameter(Mandatory = $False,
                  HelpMessage = "A switch that removes specifically Item A.")]
-      [switch]
+      [Switch]
       $RemoveA = $False,
       # Specifies a switch that removes specifically Item B.
       [Parameter(Mandatory = $False,
                  HelpMessage = "A switch that removes specifically Item B.")]
-      [switch]
-      $RemoveB = $False
+      [Switch]
+      $RemoveB = $False,
+      # Specifies a switch that removes specifically Item B.
+      [Parameter(Mandatory = $False,
+                 HelpMessage = "A switch that removes specifically Item B.")]
+      [System.Text.RegularExpressions.Regex]
+      $RegexRemoveWhenMatching
     )
 
     DynamicParam {
@@ -266,11 +282,11 @@ Process {
     End {
       If ($RemoveA -eq $False -and $RemoveB -eq $False) {
         If ($Null -ne $Pattern) {
-          If ($script:RegexRemoveWhenMatching.IsMatch($ItemB.Path.Name)) {
+          If ($RegexRemoveWhenMatching.IsMatch($ItemB.Path.Name)) {
             If ($PSCmdlet.ParameterSetName -eq "Path") {
               If ($DryRun -eq $True) {
                 Write-Host -ForegroundColor Blue -NoNewline -Object "Would remove item: ";
-                Write-Host -ForegroundColor White -NoNewline -Object "$($ItemB.Path.FullName)";
+                Write-Host -ForegroundColor White -Object "$($ItemB.Path.FullName)";
               } Else {
                 Remove-Item -Path $ItemB.Path.FullName -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True);
               }
@@ -282,10 +298,10 @@ Process {
                 Remove-Item -LiteralPath $ItemB.Path.FullName -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True);
               }
             }
-          } ElseIf ($script:RegexRemoveWhenMatching.IsMatch($ItemA.Path.Name)) {
+          } ElseIf ($RegexRemoveWhenMatching.IsMatch($ItemA.Path.Name)) {
             If ($DryRun -eq $True) {
               Write-Host -ForegroundColor Blue -NoNewline -Object "Would remove item: ";
-              Write-Host -ForegroundColor White -NoNewline -Object "$($ItemA.Path.FullName)";
+              Write-Host -ForegroundColor White -Object "$($ItemA.Path.FullName)";
             } Else {
               If ($PSCmdlet.ParameterSetName -eq "Path") {
                 Remove-Item -Path $ItemA.Path.FullName -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True);
@@ -297,7 +313,7 @@ Process {
         } Else {
             If ($DryRun -eq $True) {
               Write-Host -ForegroundColor Blue -NoNewline -Object "Would remove item: ";
-              Write-Host -ForegroundColor White -NoNewline -Object "$($ItemB.Path.FullName)";
+              Write-Host -ForegroundColor White -Object "$($ItemB.Path.FullName)";
             } Else {
               If ($PSCmdlet.ParameterSetName -eq "Path") {
                 Remove-Item -Path $ItemB.Path.FullName -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True);
@@ -310,7 +326,7 @@ Process {
         If ($RemoveA -eq $True) {
           If ($DryRun -eq $True) {
             Write-Host -ForegroundColor Blue -NoNewline -Object "Would remove item: ";
-            Write-Host -ForegroundColor White -NoNewline -Object "$($ItemA.Path.FullName)";
+            Write-Host -ForegroundColor White  -Object "$($ItemA.Path.FullName)";
           } Else {
             If ($PSCmdlet.ParameterSetName -eq "Path") {
               Remove-Item -Path $ItemA.Path.FullName -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True);
@@ -321,7 +337,7 @@ Process {
         } Else {
           If ($DryRun -eq $True) {
             Write-Host -ForegroundColor Blue -NoNewline -Object "Would remove item: ";
-            Write-Host -ForegroundColor White -NoNewline -Object "$($ItemA.Path.FullName)";
+            Write-Host -ForegroundColor White -Object "$($ItemA.Path.FullName)";
           } Else {
             If ($PSCmdlet.ParameterSetName -eq "Path") {
               Remove-Item -Path $ItemB.Path.FullName -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True);
@@ -345,7 +361,6 @@ Process {
   $Index = 0;
   $Percent = 0;
 
-
   ForEach ($ItemA in $ItemsCloneA) {
     ForEach ($ItemB in $ItemsCloneB) {
       If ($Index -ne 0) {
@@ -367,7 +382,7 @@ Process {
             [System.Console]::SetCursorPosition($ConsolePosition.X, $ConsolePosition.Y);
           }
 
-          Invoke-RemoveItem -ItemA $ItemA -ItemB $ItemB
+          Invoke-RemoveItem -ItemA $ItemA -ItemB $ItemB -RemoveB -RegexRemoveWhenMatching $script:RegexRemoveWhenMatching
 
           $CountRemoved++;
 
@@ -384,7 +399,7 @@ Process {
             [System.Console]::SetCursorPosition($ConsolePosition.X, $ConsolePosition.Y);
           }
 
-          Invoke-RemoveItem -ItemA $ItemA -ItemB $ItemB
+          Invoke-RemoveItem -ItemA $ItemA -ItemB $ItemB -RemoveA -RegexRemoveWhenMatching $script:RegexRemoveWhenMatching
 
           $CountRemoved++;
 
@@ -404,12 +419,24 @@ Process {
           While ($Done -eq $False) {
             Write-Progress -Activity "Removing Duplicates" -Status "$($Index)/$($MaxCount) - $($Percent)%" -PercentComplete $Percent -CurrentOperation "Prompting" -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True);
 
-            $Choice = (Read-Host -Prompt "Remove which item?`n0: `"$($ItemA.Path.Name)`"`n1: `"$($ItemB.Path.Name)`"`n[0/1]");
+            $Choice = -2;
+            $Auto = $False;
 
-            If ($Choice -eq 0 -or $Choice -eq "0") {
+            If ($Null -ne $Pattern -and $script:RegexRemoveWhenMatching.IsMatch($ItemA.Path.Name) -or $script:RegexRemoveWhenMatching.IsMatch($ItemB.Path.Name)) {
+              $Choice = -1;
+              $Auto = $True;
+            } Else {
+              Write-Host -Object "`$Pattern = $($Null -ne $Pattern)"
+              Write-Host -Object "`$script:RegexRemoveWhenMatching = $($script:RegexRemoveWhenMatching.GetType().FullName)"
+              Write-Host -Object "`$IsMatchA = $($script:RegexRemoveWhenMatching.IsMatch($ItemA.Path.Name))"
+              Write-Host -Object "`$IsMatchB = $($script:RegexRemoveWhenMatching.IsMatch($ItemB.Path.Name))"
+              $Choice = (Read-Host -Prompt "Remove which item?`n0: `"$($ItemA.Path.Name)`"`n1: `"$($ItemB.Path.Name)`"`n[0/1]");
+            }
+
+            If (($Choice -eq 0 -or $Choice -eq "0") -and $Auto -eq $False) {
               Write-Progress -Activity "Removing Duplicates" -Status "Removing - $($Index)/$($MaxCount) - $($Percent)%" -PercentComplete $Percent -CurrentOperation "Removing" -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True);
 
-              Invoke-RemoveItem -ItemA $ItemA -ItemB $ItemB -RemoveA
+              Invoke-RemoveItem -ItemA $ItemA -ItemB $ItemB -RemoveA -RegexRemoveWhenMatching $script:RegexRemoveWhenMatching
 
               $CountRemoved++;
 
@@ -418,10 +445,10 @@ Process {
               [System.Console]::SetCursorPosition($ConsolePosition.X, $ConsolePosition.Y);
 
               $Done = $True;
-            } ElseIf ($Choice -eq 1 -or $Choice -eq "1") {
+            } ElseIf (($Choice -eq 1 -or $Choice -eq "1") -and $Auto -eq $False) {
               Write-Progress -Activity "Removing Duplicates" -Status "$($Index)/$($MaxCount) - $($Percent)%" -PercentComplete $Percent -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True);
 
-              Invoke-RemoveItem -ItemA $ItemA -ItemB $ItemB -RemoveB
+              Invoke-RemoveItem -ItemA $ItemA -ItemB $ItemB -RemoveB -RegexRemoveWhenMatching $script:RegexRemoveWhenMatching
 
               $CountRemoved++;
 
@@ -430,6 +457,20 @@ Process {
               [System.Console]::SetCursorPosition($ConsolePosition.X, $ConsolePosition.Y);
 
               $Done = $True;
+            } ElseIf (($Choice -eq -1 -or $Choice -eq "-1") -and $Auto -eq $True) {
+              Write-Progress -Activity "Removing Duplicates" -Status "$($Index)/$($MaxCount) - $($Percent)%" -PercentComplete $Percent -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True);
+
+              Invoke-RemoveItem -ItemA $ItemA -ItemB $ItemB -RegexRemoveWhenMatching $script:RegexRemoveWhenMatching
+
+              $CountRemoved++;
+
+              $ItemB.Removed = $True;
+
+              [System.Console]::SetCursorPosition($ConsolePosition.X, $ConsolePosition.Y);
+              $Done = $True;
+            } Else {
+              $Done = $True;
+              Throw;
             }
           }
         }
@@ -443,4 +484,7 @@ Process {
 }
 End {
   Write-Host -ForegroundColor Green -Object "Items removed: $($CountRemoved)" -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True);
+}
+Clean {
+  Remove-Variable -Scope Script -Name "RegexRemoveWhenMatching";
 }

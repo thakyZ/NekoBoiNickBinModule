@@ -1,45 +1,54 @@
+[CmdletBinding()]
 Param(
   # The string to escape.
-  [Parameter(Mandatory = $True, Position = 0, ValueFromPipeline = $True, HelpMessage = "The string to escape.")]
-  [string[]]
+  [Parameter(Mandatory = $True,
+             Position = 0,
+             ValueFromPipeline = $True,
+             HelpMessage = "The string to escape.")]
+  [ValidateNotNullOrEmpty()]
+  [System.String[]]
   $InputObject
 )
 
 Begin {
-  $CharsToEscape = @(
-    "["
-    "]"
-    "+"
-    "'"
-    "`""
-  );
-  $Output = @()
+  [System.String[]]$CharsToEscape = @( '[', ']', '"' );
+  [System.String[]]$Output = @()
 }
 Process {
   Function Test-ContainsEscapable() {
+    [CmdletBinding()]
     Param(
       # The string to escape.
-      [Parameter(Mandatory = $True, Position = 0, ValueFromPipelineByPropertyName = $True, ValueFromRemainingArguments = $True, ValueFromPipeline = $True, HelpMessage = "The string to escape.")]
-      [Alias("InputObject")]
-      [string]
-      $InputObject2
+      [Parameter(Mandatory = $True,
+                 Position = 0,
+                 ValueFromPipeline = $True,
+                 HelpMessage = "The string to escape.")]
+      [ValidateNotNullOrEmpty()]
+      [System.String]
+      $InputObject,
+      # The string to escape.
+      [Parameter(Mandatory = $True,
+                 Position = 0,
+                 ValueFromPipeline = $True,
+                 HelpMessage = "The string to escape.")]
+      [ValidateNotNullOrEmpty()]
+      [System.String[]]
+      $CharsToEscape
     )
 
     ForEach ($Char in $CharsToEscape) {
-      If ($InputObject2 -Match "(?<!``)\$($Char)") {
-        $InputObject2 = $InputObject2 -Replace "\$($Char)", "``$($Char)"
+      $MatchEscaped = [System.Text.RegularExpressions.Regex]::new("(?<!``)\$($Char)");
+      If ($MatchEscaped.IsMatch($InputObject)) {
+        $InputObject = $MatchEscaped.Replace($InputObject, "``$($Char)");
       }
     }
 
-    Return $InputObject2;
-  }
-
-  If ($InputObject.Length -le 0 -or $Null -eq $InputObject) {
-    Throw "`$InputObject is empty or null.";
+    Return $InputObject;
   }
 
   ForEach ($Input in $InputObject) {
-    $Output += @(Test-ContainsEscapable -InputObject $Input)
+    # $Output += @(Test-ContainsEscapable -InputObject $Input -CharsToEscape $CharsToEscape)
+    $Output += @([WildcardPattern]::Escape($Input));
   }
 }
 End {

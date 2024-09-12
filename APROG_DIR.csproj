@@ -1,13 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>Disable</ImplicitUsings>
-    <Nullable>Enable</Nullable>
-    <RootNamespace>NekoBoiNick.CSharp.PowerShell.Cmdlets</RootNamespace>
-    <StartupObject>NekoBoiNick.CSharp.PowerShell.Cmdlets.Sort_ItemsInU_Program</StartupObject>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="System.Management.Automation" Version="7.4.1" />
+    <Compile Remove="$(ProjectDir)src">
+    <Folder Remove="$(ProjectDir)src">
+    <None Remove="$(ProjectDir)src">
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.PowerShell.Commands.Management" Version="7.4.4" />
+    <PackageReference Include="Microsoft.PowerShell.Commands.Utility" Version="7.4.4" />
+    <PackageReference Include="System.Management.Automation" Version="7.4.4" />
+  </ItemGroup>
+  <Target Name="Integrate" AfterTargets="Build">
+    <Exec Command="cp $(TargetPath) $(ProjectDir)$(TargetFileName)"/>
+    <Exec Command="cp $(TargetPath) $(ProjectDir)$(TargetFileName.Replace('.dll', '.pdb'))"/>
+  </Target>
 </Project>

@@ -519,3 +519,6 @@ FodyWeavers.xsd
 
 # Any cache directory.
 .*_cache/
+
+# not own php package files.
+*.phar

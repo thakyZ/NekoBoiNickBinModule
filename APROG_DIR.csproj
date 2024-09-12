@@ -6,17 +6,13 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="$(ProjectDir)src">
-    <Folder Remove="$(ProjectDir)src">
-    <None Remove="$(ProjectDir)src">
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.PowerShell.Commands.Management" Version="7.4.4" />
-    <PackageReference Include="Microsoft.PowerShell.Commands.Utility" Version="7.4.4" />
-    <PackageReference Include="System.Management.Automation" Version="7.4.4" />
+    <Compile Remove="$(SolutionDir)src" />
+    <Folder Remove="$(SolutionDir)src" />
+    <None Remove="$(SolutionDir)src" />
   </ItemGroup>
   <Target Name="Integrate" AfterTargets="Build">
     <Exec Command="cp $(TargetPath) $(ProjectDir)$(TargetFileName)"/>
     <Exec Command="cp $(TargetPath) $(ProjectDir)$(TargetFileName.Replace('.dll', '.pdb'))"/>
   </Target>
+  <Import Project="$(SolutionDir)dev-config\common.targets" />
 </Project>

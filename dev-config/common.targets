@@ -1,0 +1,7 @@
+<Project>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.PowerShell.Commands.Management" Version="7.4.4" />
+    <PackageReference Include="Microsoft.PowerShell.Commands.Utility" Version="7.4.4" />
+    <PackageReference Include="System.Management.Automation" Version="7.4.4" />
+  </ItemGroup>
+</Project>

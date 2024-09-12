@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
   "version": "0.2",
   "ignorePaths": [
-    "cspell.json"
+    "cspell.json",
   ],
   "dictionaryDefinitions": [],
   "dictionaries": [
@@ -24,7 +24,7 @@
     "bash",
     "fonts",
     "filetypes",
-    "npm"
+    "npm",
   ],
   "words": [
     "dwebp",
@@ -47,10 +47,11 @@
     "BufferParts",
     "ResyncAt",
     "AudioRepeater",
-    "TeraCopy"
+    "TeraCopy",
+    "Authenticode",
   ],
   "ignoreWords": [
-    "nv_dispi.inf_amd64"
+    "nv_dispi.inf_amd64",
   ],
   "ignoreRegExpList": [
     "/(?<=\\$env:|%|\\))APROG_DIR(?=%|\\()?/",
@@ -63,7 +64,7 @@
     "/\\b\\w+\\b\\.(?:dll|exe)/",
     "/(?<=(?:linux|mac)_\\.\\+_(?:gui_)?)(?:libraw|krokiet)(?=_heif)/",
     "/(?<=Fredrik)Noren|Fredrik(?=Noren)|(?<=FredrikNoren\\/|\\\\)ungit/",
-    "/^# SIG # Begin signature block[\\n /+a-zA-Z0-9=#]+(?=# SIG # End signature block)# SIG # End signature block$/"
+    "/^# SIG # Begin signature block[\\n /+a-zA-Z0-9=#]+(?=# SIG # End signature block)# SIG # End signature block$/",
   ],
   "import": []
 }

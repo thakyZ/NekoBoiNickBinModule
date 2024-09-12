@@ -3,6 +3,8 @@ param([string] $file=$(throw "Please specify a filename."))
 $cert = @(Get-ChildItem cert:\CurrentUser\My -codesigning)[0]
 Set-AuthenticodeSignature $file $cert
 
+
+# cSpell:disable
 # SIG # Begin signature block
 # MIIFuQYJKoZIhvcNAQcCoIIFqjCCBaYCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR

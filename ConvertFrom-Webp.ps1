@@ -286,12 +286,21 @@ $Items = @();
 
 [System.Object]$_Dwebp;
 
-If ($Null -eq $Dwebp) {
+If ($Null -eq $Dwebp -or $Dwebp -eq "") {
+  $Json = (Get-Content -LiteralPath (Join-Path -Path $PSScriptRoot -ChildPath "config.json") | ConvertFrom-Json);
+  $Config = ($Json.Installs | Where-Object { $_.Name.ToLower() -eq "dwebp" } -ErrorAction SilentlyContinue);
+  If ($Config.Length -eq 0) {
+    $Config = ($Json.Installs.PSObject.Properties | Where-Object { $_.Name.ToLower() -eq "dwebp" } -ErrorAction SilentlyContinue);
+  }
   $_Dwebp = (Get-Command -Name "dwebp" -ErrorAction SilentlyContinue);
 
-  If ($Null -eq $Dwebp) {
+  If ($Config.Length -eq 0 -and $Null -eq $_Dwebp) {
     Write-Error -Message "Could not find program `"dwebp`" on system environment path.";
-
+    Exit 1;
+  } ElseIf ($Config.Length -eq 1 -and $Null -eq $_Dwebp) {
+    $_Dwebp = @{ Source = (Resolve-Path -Path $Config.Value) };
+  } Elseif ($Config.Length -gt 1 -and $Null -eq $_Dwebp) {
+    Write-Error -Message "Too many entires for dwebp in the config.";
     Exit 1;
   }
 } Else {

@@ -46,15 +46,24 @@ If ($Browser -eq "Brave") {
     If ($DownloadPage.StatusCode -ne 200) {
       Write-Error -Message "Download of page $($DownloadPageUri) returned status code $($DownloadPage.StatusCode)";
     } Else {
-      $DownloadUri = [Regex]::Replace([Regex]::Matches(($DownloadPage.Links | Where-Object { Return $_.outerHTML -match "^<a id=`"download-page-download-button-hero`"" }).outerHTML, "[\w\-]+=\`"[a-zA-Z0-9\/\:\-\.\\\ ]*?\`"")[-1].Value, "(?:^href=\`"|\`"$)", "");
-      Invoke-WebRequest -Uri $DownloadUri -OutFile $Destinations[0];
-      If ($Destinations.Length -gt 1) {
-        ForEach ($Destination in $Destinations) {
-          If ($Destination -eq $Destinations[0]) {
-            Continue;
+      $Matches = [Regex]::Matches(($DownloadPage.Links | Where-Object { Return $_.outerHTML -match "^<a id=`"download-page-download-button-hero`"" }).outerHTML, "[\w\-]+=\`"[a-zA-Z0-9\/\:\-\.\\\ ]*?\`"");
+      $LastMatch = $Matches | Where-Object { $_.Value.ToLower().StartsWith("href") } | Select-Object -Last 1;
+      $DownloadUri = [Regex]::Replace($LastMatch.Value, "(?:^href=\`"|\`"$)", "");
+      Try {
+        Invoke-WebRequest -Uri $DownloadUri -OutFile $Destinations[0];
+        If ($Destinations.Length -gt 1) {
+          ForEach ($Destination in $Destinations) {
+            If ($Destination -eq $Destinations[0]) {
+              Continue;
+            }
+            Copy-Item -Path $Destinations[0] -Destination $Destination;
           }
-          Copy-Item -Path $Destinations[0] -Destination $Destination;
         }
+      } Catch {
+        Write-Output -InputObject $Matches | Out-Host;
+        Write-Output -InputObject $LastMatch | Out-Host;
+        Write-Host -Object $DownloadUri;
+        Throw;
       }
     }
   } Catch {

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>NekoBoiNick.CSharp.PowerShell.SoupCatUtils</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <EditorConfigFile Remove="$(SolutionDir).editoconfig" />
+    <None Include="$(SolutionDir).editoconfig" />
+  </ItemGroup>
+  <Import Project="$(SolutionDir)dev-config\common.targets" />
+</Project>

@@ -20,7 +20,7 @@ If ($PSVersionTable.PSVersion.Major -ge "5") {
       # the main match
       $Regex = [System.Text.RegularExpressions.Regex]::new('\$_(?<PropertyName>\w*)\s*=\s*');
       $Match = $Regex.Match($String)
-      Return (ConvertFrom-RegexNamedGroupCapture -Match $Match -Regex $Regex).PropertyName
+      Write-Output -NoEnumerate -InputObject (ConvertFrom-RegexNamedGroupCapture -Match $Match -Regex $Regex).PropertyName
     }
   }
 
@@ -132,7 +132,7 @@ If ($PSVersionTable.PSVersion.Major -ge "5") {
 
       # If there is no getter or setter don't add a ScriptProperty.
       If ((-not $Getter -and -not $Setter) -or ($Null -eq $Getter -and $Null -eq $Setter)) {
-        return $InitialValue
+        Write-Output -NoEnumerate -InputObject $InitialValue
       }
 
       # Prepare to create the ScriptProperty.
@@ -151,7 +151,7 @@ If ($PSVersionTable.PSVersion.Major -ge "5") {
       $Object | Add-Member @Splat | Out-Null;
 
       # Return the initializers.
-      return $InitialValue
+      Write-Output -NoEnumerate -InputObject $InitialValue
     }
   }
 }

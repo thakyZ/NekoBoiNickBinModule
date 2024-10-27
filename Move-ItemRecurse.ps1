@@ -227,6 +227,9 @@ Process {
         $MovingPath = ($SourceItem.FullName -replace [System.Text.RegularExpressions.Regex]::Escape("$($SourcePath.FullName)\?"), '.\');
       }
 
+      # TODO: if the folder we are moving does not exist in the destination already just move it instead of recreating the folder tree.
+      # NOTE: This above TODO does not already happen for some reason (use sandboxie to test)
+
       Write-Progress -Id 2 -Activity "Moving Items" -Status "Moving $($MovingPath) - $($Index)/$($Total) - $($Progress)%" -PercentComplete $Progress;
       [System.String]$PotentialDestinationPath = (Get-RelativeForDestination -APath $SourceItem -ParentPath (Get-Item -Path $EscapedPath) -Destination $DestinationPath);
       If (Test-Path -LiteralPath $SourceItem.FullName -PathType Container -Verbose:$EnableVerbose -Debug:$EnableDebug) {

@@ -26,7 +26,6 @@ Param(
   $LiteralPath,
   # Specifies a fixed string that specifies the algorithm to use for hashing.
   [Parameter(Mandatory = $False,
-             Position = 1,
              HelpMessage = "The algorithm to use for hashing. (Default: SHA512)")]
   [ValidateSet("MD5", "SHA1", "SHA256", "SHA384", "SHA512")]
   [System.String]
@@ -78,7 +77,7 @@ DynamicParam {
   If ($Null -ne $Pattern) {
     Try {
       [System.Text.RegularExpressions.Regex]$script:RegexRemoveWhenMatching;
-      If ($Pattern.GetType() -eq [System.String]) {
+      If ($Pattern -is [System.String]) {
         # You can specify the Regex Options via using a traditional regex string starting with a forward slash and ending in a forward slash with or without succeeding regex flags.
 
         # Set temporary default regex flags.
@@ -113,7 +112,7 @@ DynamicParam {
 
         # System.TimeSpan for 1 hour to limit catastrophic backtracking.
         $script:RegexRemoveWhenMatching = [System.Text.RegularExpressions.Regex]::new($Pattern, $RegexOptions, [System.TimeSpan]::new(1, 0, 0))
-      } ElseIf ($Pattern.GetType() -eq [System.Text.RegularExpressions.Regex]) {
+      } ElseIf ($Pattern -is [System.Text.RegularExpressions.Regex]) {
         $script:RegexRemoveWhenMatching = $Pattern
       } Else {
         Throw [System.Exception]::new("Type of Pattern is not [System.String] or [System.Text.RegularExpressions.Regex]");
@@ -184,7 +183,7 @@ Begin {
   $MaxCount = $AllItems.Length;
 
   $Items = @();
-  If ($Recurse -eq $False -and $PSCmdlet.ParameterSetName -eq "Path") {
+  If ($Recurse -eq $False) {
     ForEach ($File in $AllItems) {
       If ($Index -ne 0) {
         $Percent = [System.Math]::Ceiling(($Index / $MaxCount) * 100);
@@ -192,12 +191,17 @@ Begin {
 
       Write-Progress -Activity "Getting Files" -Status "Parsing - $($Index)/$($MaxCount) - $($Percent)%" -PercentComplete $Percent -CurrentOperation "Starting" -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True);
 
-      $Hash = (Get-FileHash -Path $File.FullName -Algorithm $Algorithm -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True));
-      $Items += @{ Path = (Get-Item -Path $File.FullName -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True)); Hash = $Hash; Removed = $False; IsSubdirectory = $False; };
+      If ($PSCmdlet.ParameterSetName -eq "Path") {
+        $Hash = (Get-FileHash -Path $File.FullName -Algorithm $Algorithm -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True));
+        $Items += @{ Path = (Get-Item -Path $File.FullName -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True)); Hash = $Hash; Removed = $False; IsSubdirectory = $False; };
+      } ElseIf ($PSCmdlet.ParameterSetName -eq "LiteralPath") {
+        $Hash = (Get-FileHash -LiteralPath $File.FullName -Algorithm $Algorithm -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True));
+        $Items += @{ Path = (Get-Item -LiteralPath $File.FullName -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True)); Hash = $Hash; Removed = $False; IsSubdirectory = $False; };
+      }
 
       $Index++;
     }
-  } ElseIf ($Recurse -eq $True -and $PSCmdlet.ParameterSetName -eq "Path") {
+  } ElseIf ($Recurse -eq $True) {
     ForEach ($File in $AllItems) {
       If ($Index -ne 0) {
         $Percent = [System.Math]::Ceiling(($Index / $MaxCount) * 100);
@@ -205,41 +209,20 @@ Begin {
 
       Write-Progress -Activity "Getting Files" -Status "Parsing - $($Index)/$($MaxCount) - $($Percent)%" -PercentComplete $Percent -CurrentOperation "Starting" -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True);
 
-      $Hash = (Get-FileHash -Path $File.FullName -Algorithm $Algorithm -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True));
-      $IsSubdirectory = (Test-SubPath -Directory $MainPath -Subpath $File.Directory -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True));
-      $Items += @{ Path = (Get-Item -Path $File.FullName -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True)); Hash = $Hash; Removed = $False; IsSubdirectory = $IsSubdirectory; };
-
-      $Index++;
-    }
-  } ElseIf ($Recurse -eq $False -and $PSCmdlet.ParameterSetName -eq "LiteralPath") {
-    ForEach ($File in $AllItems) {
-      If ($Index -ne 0) {
-        $Percent = [System.Math]::Ceiling(($Index / $MaxCount) * 100);
+      If ($PSCmdlet.ParameterSetName -eq "Path") {
+        $Hash = (Get-FileHash -Path $File.FullName -Algorithm $Algorithm -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True));
+        $IsSubdirectory = (Test-SubPath -Directory $MainPath -Subpath $File.Directory -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True));
+        $Items += @{ Path = (Get-Item -Path $File.FullName -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True)); Hash = $Hash; Removed = $False; IsSubdirectory = $IsSubdirectory; };
+      } ElseIf ($PSCmdlet.ParameterSetName -eq "LiteralPath") {
+        $Hash = (Get-FileHash -LiteralPath $File.FullName -Algorithm $Algorithm);
+        $IsSubdirectory = (Test-SubPath -Directory $MainPath -Subpath $File.Directory -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True));
+        $Items += @{ Path = (Get-Item -LiteralPath $File.FullName -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True)); Hash = $Hash; Removed = $False; IsSubdirectory = $IsSubdirectory; };
       }
-
-      Write-Progress -Activity "Getting Files" -Status "Parsing - $($Index)/$($MaxCount) - $($Percent)%" -PercentComplete $Percent -CurrentOperation "Starting" -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True);
-
-      $Hash = (Get-FileHash -LiteralPath $File.FullName -Algorithm $Algorithm -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True));
-      $Items += @{ Path = (Get-Item -LiteralPath $File.FullName -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True)); Hash = $Hash; Removed = $False; IsSubdirectory = $False; };
-
-      $Index++;
-    }
-  } ElseIf ($Recurse -eq $True -and $PSCmdlet.ParameterSetName -eq "LiteralPath") {
-    ForEach ($File in $AllItems) {
-      If ($Index -ne 0) {
-        $Percent = [System.Math]::Ceiling(($Index / $MaxCount) * 100);
-      }
-
-      Write-Progress -Activity "Getting Files" -Status "Parsing - $($Index)/$($MaxCount) - $($Percent)%" -PercentComplete $Percent -CurrentOperation "Starting" -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True);
-
-      $Hash = (Get-FileHash -LiteralPath $File.FullName -Algorithm $Algorithm);
-      $MainPath = (Get-Item -LiteralPath $Path -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True));
-      $IsSubdirectory = (Test-SubPath -Directory $MainPath -Subpath $File.Directory -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True));
-      $Items += @{ Path = (Get-Item -LiteralPath $File.FullName -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True)); Hash = $Hash; Removed = $False; IsSubdirectory = $IsSubdirectory; };
 
       $Index++;
     }
   }
+
   Write-Progress -Activity "Getting Files" -Status "Finished - $($Index)/$($MaxCount) - $($Percent)%" -PercentComplete $Percent -CurrentOperation "Finished" -Completed -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $True) -Debug:($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent -eq $True);
 }
 Process {

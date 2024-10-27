@@ -43,12 +43,12 @@
   },
   "Tokens": [
     {
-      "Name": "GitHub",
+      "Name": "Example's API",
       "Addresses": [
-        "api.github.com",
-        "github.com",
-        "raw.githubusercontent.com"
+        "api.example.com",
+        "or null"
       ],
+      "UserAccount": "... or null",
       "Token": "..."
     }
   ]

@@ -1,4 +1,6 @@
 Function Get-Config() {
+  [CmdletBinding(DefaultParameterSetName = "Path")]
+  [OutputType([Hashtable])]
   Param(
     # Specifies a path to a single location. Unlike the Path parameter, the value of the LiteralPath parameter is
     # used exactly as it is typed. No characters are interpreted as wildcards. If the path includes escape characters,
@@ -26,24 +28,26 @@ Function Get-Config() {
     $Path
   )
 
-  If ($PSCmdlet.ParameterSetName -eq "Path") {
-    $ConfigPath = $Path;
-  } Else {
-    $ConfigPath = $LiteralPath;
+  Begin {
+    If ($PSCmdlet.ParameterSetName -eq "Path") {
+      $ConfigPath = $Path;
+    } Else {
+      $ConfigPath = $LiteralPath;
+    }
+
+    [Hashtable] $Returned = $Null;
+  } Process {
+    Try {
+      $ConfigText = (Get-Content -LiteralPath $ConfigPath);
+      $Returned = ($ConfigText | ConvertFrom-Json -AsHashtable);
+    } Catch {
+      Write-Error -Exception $_.Exception -Message "Failed to load the JSON config at, $($ConfigPath)"
+      Throw $_.Exception;
+      Exit 1;
+    }
+  } End {
+    Write-Output -NoEnumerate -InputObject $Returned;
   }
-
-  $Returned = $Null;
-
-  Try {
-    $ConfigText = (Get-Content -LiteralPath $ConfigPath);
-    $Returned = ($ConfigText | ConvertFrom-Json);
-  } Catch {
-    Write-Error -Exception $_.Exception -Message "Failed to load the JSON config at, $($ConfigPath)"
-    Throw $_.Exception;
-    Exit 1;
-  }
-
-  Return $Returned;
 }
 
 Function Get-UnhashedPassword() {
@@ -58,7 +62,7 @@ Function Get-UnhashedPassword() {
   }
 
   $Test = (New-Object -TypeName System.Net.NetworkCredential -ArgumentList @([string]::Empty, (ConvertTo-SecureString -String $script:Config.gnupg.password_hashed))).Password;
-  Return $Test;
+  Write-Output -NoEnumerate -InputObject $Test;
 }
 
 Function Expand-Variables() {

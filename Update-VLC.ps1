@@ -163,7 +163,7 @@ Try {
       };
       $FoundFile = ($Hashes | Where-Object { $_.Name -eq "./$($DownloadFileMsi.Name)" });
       If ($Null -ne $FoundFile -and $Hash.Hash.ToLower() -eq $FoundFile.Hash) {
-        
+
       }
   } Else {
     Write-Error -Message "Download file was not the expected extension `".msi`" and `"`$Null`" please contact the author of this script.";
@@ -191,6 +191,6 @@ Try {
 
 } Catch {
   Write-Error -Exception $_.Exception -Message $_.Exception.Message;
-  Write-Output $Web;
+  Write-Output -NoEnumerate -InputObject $Web;
   Exit 1;
 }

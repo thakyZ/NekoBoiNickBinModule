@@ -1,4 +1,4 @@
-# cSpell:ignore WerWolv APROG_DIR
+[CmdletBinding()]
 Param()
 
 . "$((Join-Path -Path (Get-Item -Path $Profile).Directory -ChildPath "Utils.ps1"))";

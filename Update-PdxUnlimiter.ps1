@@ -163,7 +163,7 @@ Function Test-MatchFilesToKeep() {
   param(
     # Specifies an array of PowerShell file object.
     [Parameter(Mandatory = $True, Position = 0, HelpMessage = "An array of PowerShell file object.")]
-    [ValidateNotNull]
+    [ValidateNotNull()]
     [PSObject[]]
     $Files
   )

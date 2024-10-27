@@ -10,6 +10,7 @@
   },
   "[python]": {
     "editor.tabSize": 4,
+    "editor.indentSize": 4,
   },
   "[markdown]": {
     "diffEditor.ignoreTrimWhitespace": false,
@@ -34,4 +35,14 @@
   ],
   "dotnet.dotnetPath": "C:/Progra~1/dotnet",
   "dotnet.preferCSharpExtension": true,
+  "[powershell]": {
+    "debug.saveBeforeStart": "nonUntitledEditorsInActiveGroup",
+    "editor.semanticHighlighting.enabled": false,
+    "editor.wordSeparators": "`~!@#$%^&*()=+[{]}\\|;:'\",.<>/?"
+  },
+  "pylint.path": [
+    "./.venv/Scripts/python",
+    "-m",
+    "pylint"
+  ]
 }

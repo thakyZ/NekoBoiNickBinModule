@@ -17,9 +17,6 @@ Param(
   $Old = $False
 )
 
-# cSpell:ignoreRegExp /Neko(?=BoiNick)/
-# cSpell:ignoreRegExp /(?<=Neko)Boi(?=Nick)/
-
 Begin {
   $script:OldConsoleMethod = (-not $NewConsoleMethod);
   $script:DryRun = (-not $NoDryRun);

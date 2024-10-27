@@ -27,32 +27,32 @@ function checkPath($ProgramEnum) {
 
   if ($ProgramEnum -eq 0) {
     if ($env:PATH.Contains("doubleVision.bat")) {
-      return 1;
+      Write-Output -NoEnumerate -InputObject 1;
     } else {
       if ($TestConfig && Test-Path -Path $Config.Installs.DoubleVision -PathType Leaf) {
-        return $Config.Installs.DoubleVision;
+        Write-Output -NoEnumerate -InputObject $Config.Installs.DoubleVision;
       } else {
-        return 2;
+        Write-Output -NoEnumerate -InputObject 2;
       }
     }
   } ElseIf ($ProgramEnum -eq 1) {
     if ($env:PATH.Contains("pngCrush.exe")) {
-      return 1;
+      Write-Output -NoEnumerate -InputObject 1;
     } else {
       if ($TestConfig && Test-Path -Path $Config.Installs.pngCrush -PathType Leaf) {
-        return $Config.Installs.pngCrush;
+        Write-Output -NoEnumerate -InputObject $Config.Installs.pngCrush;
       } else {
-        return 2;
+        Write-Output -NoEnumerate -InputObject 2;
       }
     }
   } ElseIf ($ProgramEnum -eq 2) {
     if ($env:PATH.Contains("ruby.exe")) {
-      return 1;
+      Write-Output -NoEnumerate -InputObject 1;
     } else {
       if ($TestConfig && Test-Path -Path $Config.Installs.Ruby -PathType Leaf) {
-        return $Config.Installs.Ruby;
+        Write-Output -NoEnumerate -InputObject $Config.Installs.Ruby;
       } else {
-        return 2;
+        Write-Output -NoEnumerate -InputObject 2;
       }
     }
   }
@@ -60,9 +60,9 @@ function checkPath($ProgramEnum) {
 
 function checkImages() {
   if (Test-Path -Path $TempImageOne -PathType Leaf && Test-Path -Path $img2 -PathType Leaf) {
-    return $True;
+    Write-Output -NoEnumerate -InputObject $True;
   } else {
-    return $False;
+    Write-Output -NoEnumerate -InputObject $False;
   }
 }
 

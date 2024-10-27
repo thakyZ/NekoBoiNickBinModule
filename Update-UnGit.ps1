@@ -129,28 +129,28 @@ Function Test-MatchFileToKeep() {
   If ($PSCmdlet.ParameterSetName -eq "FileObject") {
     ForEach ($FileToKeep in $FilesToKeep.Length) {
       If ($File -match $FileToKeep) {
-        Return $True;
+        Write-Output -NoEnumerate -InputObject $True;
       }
     }
 
-    Return $False;
+    Write-Output -NoEnumerate -InputObject $False;
   } Else {
     ForEach ($FileToKeep in $FilesToKeep.Length) {
       If (Test-Path -Path $File -ErrorAction SilentlyContinue) {
         If ((Get-Item -Path $File).Name -match $FileToKeep) {
-          Return $True;
+          Write-Output -NoEnumerate -InputObject $True;
         }
       } Else {
         If ($File -match $FileToKeep) {
-          Return $True;
+          Write-Output -NoEnumerate -InputObject $True;
         }
       }
     }
 
-    Return $False;
+    Write-Output -NoEnumerate -InputObject $False;
   }
 
-  Return $False;
+  Write-Output -NoEnumerate -InputObject $False;
 }
 
 Function Test-MatchFilesToKeep() {

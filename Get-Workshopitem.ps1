@@ -7,7 +7,7 @@ param (
 
 if ($null -eq $WorkshopId)
 {
-  Return 1;
+  Write-Output -NoEnumerate -InputObject 1;
 }
 
 Import-Module PowerHTML

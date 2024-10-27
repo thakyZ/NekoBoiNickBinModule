@@ -55,7 +55,7 @@ Process
     }
     $local:expiresOn = ($local:data.result.Where({ $_.hosts -contains "example.com" }).certificates.Where({ $_.hosts -contains "example.com" }).expires_on);
     $local:dateNow = ([System.DateTime]::Now);
-    Return ($local:expiresOn -le $local:dateNow);
+    Write-Output -NoEnumerate -InputObject ($local:expiresOn -le $local:dateNow);
   }
 
   function Switch-SslMode() {
@@ -112,7 +112,7 @@ Process
       }
     }
 
-    Return $local:success;
+    Write-Output -NoEnumerate -InputObject $local:success;
   }
 
   function Invoke-ServiceNginx {
@@ -149,7 +149,7 @@ Process
       }
     }
     End {
-      Return $local:exitCode;
+      Write-Output -NoEnumerate -InputObject $local:exitCode;
     }
   }
 
@@ -176,10 +176,10 @@ Process
 
     If ($local:data -contains "Skip, Next renewal time is") {
       Write-Debug -Message "`$LastExitCode = `"$($local:exitCode)`"";
-      Return 0;
+      Write-Output -NoEnumerate -InputObject 0;
     }
 
-    Return $local:ExitCode;
+    Write-Output -NoEnumerate -InputObject $local:ExitCode;
   }
 
   Function Invoke-Renew {
@@ -192,7 +192,7 @@ Process
       $local:Expired = Test-SslExpire;
 
       If ($Expired -eq $False) {
-        Return 0;
+        Write-Output -NoEnumerate -InputObject 0;
       }
 
       ForEach ($Domain in $local:Domains) {
@@ -210,7 +210,7 @@ Process
         Write-Host -ForegroundColor Green -NoNewline -Object "Completed successfully";
       }
     }
-    Return $local:exitCode
+    Write-Output -NoEnumerate -InputObject $local:exitCode
   }
 
 

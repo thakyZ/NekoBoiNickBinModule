@@ -32,7 +32,7 @@ function DurationSeconds() {
     $1 = ""
   )
 
-  return [Math]::Round($(ffprobe.exe -i "${1}" -show_entries format=duration -v quiet -of csv="p=0"), 2)
+  Write-Output -NoEnumerate -InputObject [Math]::Round($(ffprobe.exe -i "${1}" -show_entries format=duration -v quiet -of csv="p=0"), 2)
 }
 
 function SubtractAndTurncate() {
@@ -43,7 +43,7 @@ function SubtractAndTurncate() {
     $2 = 1
   )
   $_temp = ${1} / 1 - ${2}
-  return [Math]::Round($_temp, 2);
+  Write-Output -NoEnumerate -InputObject [Math]::Round($_temp, 2);
 }
 
 function DivideFloats() {
@@ -54,7 +54,7 @@ function DivideFloats() {
     $2 = 1
   )
   $_temp = ${1} / ${2}
-  return [Math]::Round($_temp, 2);
+  Write-Output -NoEnumerate -InputObject [Math]::Round($_temp, 2);
 }
 
 $audioargs = "-an"

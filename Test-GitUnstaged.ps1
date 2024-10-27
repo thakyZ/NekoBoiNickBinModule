@@ -1,6 +1,6 @@
 Param(
   [Parameter(Mandatory = $False, Position = 0,
-             ValueFromPipeline= $True, 
+             ValueFromPipeline= $True,
              ValueFromPipelineByPropertyName= $True,
              HelpMessage = "Path to one or more items")]
   [ValidateNotNullOrEmpty()]
@@ -22,9 +22,9 @@ If ($Recurse) {
   ForEach ($Item in $Items) {
     Set-Location -LiteralPath $Item.FullName;
     $Output=(git status);
-    If ($Null -ne ($Output | Select-String "Changes not staged for commit") -or 
-        $Null -ne ($Output | Select-String "Untracked files") -or 
-        $Null -ne ($Output | Select-String "Untracked files")) {    
+    If ($Null -ne ($Output | Select-String "Changes not staged for commit") -or
+        $Null -ne ($Output | Select-String "Untracked files") -or
+        $Null -ne ($Output | Select-String "Untracked files")) {
       $ParsedItems += $Item;
     }
   }
@@ -33,9 +33,9 @@ If ($Recurse) {
   ForEach ($Item in $Items) {
     Set-Location -LiteralPath $Item.FullName;
     $Output=(git status);
-    If ($Null -ne ($Output | Select-String "Changes not staged for commit") -or 
-        $Null -ne ($Output | Select-String "Untracked files") -or 
-        $Null -ne ($Output | Select-String "Untracked files")) {    
+    If ($Null -ne ($Output | Select-String "Changes not staged for commit") -or
+        $Null -ne ($Output | Select-String "Untracked files") -or
+        $Null -ne ($Output | Select-String "Untracked files")) {
       $ParsedItems += $Item;
     }
   }
@@ -43,4 +43,4 @@ If ($Recurse) {
 
 Set-Location -LiteralPath $OriginalLocation;
 
-Write-Output $ParsedItems
+Write-Output -NoEnumerate -InputObject $ParsedItems

@@ -144,16 +144,16 @@ Process {
   If ($Job.State -eq "Completed") {
     Write-Output -InputObject $JobReceived[2] | Out-Host;
     Write-Output -InputObject $JobReceived | Out-Host;
-    Write-Output -InputObject $JobReceived;
+    Write-Output -NoEnumerate -InputObject $JobReceived;
   } ElseIf ($Job.State -eq "Failed") {
     Write-Output -InputObject $JobReceived[2] | Out-Host;
     Write-Output -InputObject $JobReceived | Out-Host;
-    Write-Output -InputObject $JobReceived;
+    Write-Output -NoEnumerate -InputObject $JobReceived;
   } Else {
     Write-Error -Message "Failed with unknown status code `"$($Job.State)`"." | Out-Host;
     Write-Output -InputObject $JobReceived[2] | Out-Host;
     Write-Output -InputObject $JobReceived | Out-Host;
-    Write-Output -InputObject $JobReceived;
+    Write-Output -NoEnumerate -InputObject $JobReceived;
   }
 
   Remove-Job -Id $Job.Id;

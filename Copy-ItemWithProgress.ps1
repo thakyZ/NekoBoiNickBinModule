@@ -73,7 +73,7 @@ Process {
       [System.Int32]
       $Total
     )
-    Return [System.Math]::Ceiling(($Index / $Total) * 100);
+    Write-Output -NoEnumerate -InputObject [System.Math]::Ceiling(($Index / $Total) * 100);
   }
   ForEach ($Item in $Items) {
     Copy-Item -LiteralPath $Item -Destination $_Destination -ErrorAction Stop;

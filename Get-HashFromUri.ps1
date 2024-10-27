@@ -64,5 +64,5 @@ End {
     Hash = $StringBuilder.ToString()
     Uri = $Uri
   }
-  Write-Output -InputObject $Output;
+  Write-Output -NoEnumerate -InputObject $Output;
 }

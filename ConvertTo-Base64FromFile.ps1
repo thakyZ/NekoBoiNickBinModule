@@ -14,7 +14,7 @@ Begin {
   $FileStream.CopyTo($MemoryStream);
   $Output = (ConvertTo-Base64 -MemoryStream $MemoryStream -Compress:($Compress -eq $True));
 } End {
-  Write-Output $Output;
+  Write-Output -NoEnumerate -InputObject $Output;
 } Clean {
   $FileStream.Close();
   $MemoryStream.Close();

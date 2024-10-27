@@ -61,7 +61,7 @@ Function Get-FileMetaData {
     $Output.LastAccessTimeUtc = $Item.LastAccessTimeUtc;
     $Output.Attributes = $Item.Attributes;
     $Output.Acl = (Get-Acl -Path $Path);
-    Return $Output;
+    Write-Output -NoEnumerate -InputObject $Output;
   } Catch {
     Throw $_;
   }
@@ -137,19 +137,19 @@ Function Test-OutputFileExists {
 
   If ($PSCmdlet.ParameterSetName -eq "PSPath") {
     If (Test-Path -LiteralPath $Path -PathType Leaf) {
-      Return $True;
+      Write-Output -NoEnumerate -InputObject $True;
     } ElseIf (Test-Path -LiteralPath $Path -PathType Container) {
-      Return $True;
+      Write-Output -NoEnumerate -InputObject $True;
     }
   } Else {
     If (Test-Path -LiteralPath $Path -PathType Leaf) {
-      Return $True;
+      Write-Output -NoEnumerate -InputObject $True;
     } ElseIf (Test-Path -LiteralPath $Path -PathType Container) {
-      Return $True;
+      Write-Output -NoEnumerate -InputObject $True;
     }
   }
 
-  Return $False;
+  Write-Output -NoEnumerate -InputObject $False;
 }
 
 Function Get-LastDuplicateNameFiles {
@@ -206,7 +206,7 @@ Function Get-LastDuplicateNameFiles {
 
   $OutputPath = (Join-Path -Path $OutputDirectory -ChildPath "$($OutputBaseName) ($($FoundInt))$($OutputExtension)");
 
-  Return $OutputPath;
+  Write-Output -NoEnumerate -InputObject $OutputPath;
 }
 
 Function Get-SimplifyName {
@@ -222,10 +222,10 @@ Function Get-SimplifyName {
   )
 
   If ($BaseName -match '(.+) \(\d+\)') {
-    Return ($BaseName -replace '(.+) \(\d+\)$', '$1');
+    Write-Output -NoEnumerate -InputObject ($BaseName -replace '(.+) \(\d+\)$', '$1');
   }
 
-  Return $BaseName;
+  Write-Output -NoEnumerate -InputObject $BaseName;
 }
 
 Function Get-OutputPath {
@@ -242,8 +242,7 @@ Function Get-OutputPath {
 
   Begin {
     $OutputPath = $Path;
-  }
-  Process {
+  } Process {
     Try {
       If (Test-OutputFileExists -Path $OutputPath) {
         [System.String]$Script = (Get-Content -LiteralPath (Join-Path -Path $PSScriptRoot -ChildPath "Get-MissingNewItem.cs") -Raw -Encoding UTF8);
@@ -257,7 +256,7 @@ Function Get-OutputPath {
             Throw "`$_OutputPath is null";
           }
           Add-Type -Language CSharp $_Script;
-          Write-Output -InputObject ([NekoBoiNick.CSharp.PowerShell.Cmdlets.Get_MissingNewItem]::Main($_OutputPath));
+          Write-Output -NoEnumerate -InputObject ([NekoBoiNick.CSharp.PowerShell.Cmdlets.Get_MissingNewItem]::Main($_OutputPath));
         } -ArgumentList @($Script, $OutputPath));
         [System.String]$LastState = (Get-Job -Id $Job.Id).State;
         While ($LastState -eq "Running") {
@@ -278,7 +277,7 @@ Function Get-OutputPath {
     }
   }
   End {
-    Return $OutputPath;
+    Write-Output -NoEnumerate -InputObject $OutputPath;
   }
 }
 

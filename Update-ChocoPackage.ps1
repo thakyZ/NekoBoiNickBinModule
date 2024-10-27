@@ -92,7 +92,7 @@ Function Invoke-BypassPackageInstallDir {
     }
 
     If ($WebRequest.StatusCode -eq -1) {
-      Return $False;
+      Write-Output -NoEnumerate -InputObject $False;
     }
 
     $TempText = (Get-Content -Path $InstallFile);
@@ -106,17 +106,17 @@ Function Invoke-BypassPackageInstallDir {
       $Okay = (Read-Host -Prompt "Is this okay? [Y/n]");
       If ($Okay.ToLower() -eq "n") {
         Write-Host -Object "Quitting..."
-        Return $False;
+        Write-Output -NoEnumerate -InputObject $False;
       }
     }
   } Catch {
     If ($Null -eq $WebRequest) {
       Write-Error -Exception $_.Exception -Message "Failed to create package directory or something else`n$($_.Exception.Message)";
-      Return $False;
+      Write-Output -NoEnumerate -InputObject $False;
     }
 
     Write-Error -Exception $_.Exception -Message "Failed to invoke web request (Status Code: $($WebRequest.StatusCode))`n$($_.Exception.Message)";
-    Return $False;
+    Write-Output -NoEnumerate -InputObject $False;
   }
 }
 
@@ -168,7 +168,7 @@ Function Invoke-UpdatePackage {
       If ($Process.HasExited -eq $True) {
         Write-Debug -Message "`$Process exited with code; $($ExitCode).";
         Write-Host "Invoke-UpdatePackage: $($ExitCode)";
-        Return $ExitCode;
+        Write-Output -NoEnumerate -InputObject $ExitCode;
       } Else {
         Write-Host "Invoke-UpdatePackage: `"Process has not exited properly and reached the end.`"";
         Throw "Process has not exited properly and reached the end.";
@@ -217,7 +217,7 @@ Function ConvertFrom-Xml {
       }
     }
 
-    Write-Output -InputObject $PSObject
+    Write-Output -NoEnumerate -InputObject $PSObject
   }
 }
 
@@ -281,7 +281,7 @@ Function Invoke-HandlePackageUpgrade() {
     Write-Debug "Invoke-HandlePackageUpgrade: $($PackageUpdateExitCode)";
     Write-Debug "";
   }
-  Return $PackageUpdateExitCode;
+  Write-Output -NoEnumerate -InputObject $PackageUpdateExitCode;
 }
 
 Function Update-Package() {

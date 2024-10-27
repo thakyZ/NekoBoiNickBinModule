@@ -30,9 +30,9 @@ Begin {
     Write-Host -ForegroundColor Green "https://github.com/MustardChef/WSABuilds/blob/master/Documentation/WSABuilds/Backup%20and%20Restore.md";
     $Confirm = (Read-Host -Prompt "Continue (Y/N)")
     If ($Confirm -match "[Yy](?:[Ee][Ss])?") {
-      Return $True;
+      Write-Output -NoEnumerate -InputObject $True;
     }
-    Return $False;
+    Write-Output -NoEnumerate -InputObject $False;
   }
   $script:TempFolder = (Join-Path -Path $HOME -ChildPath ".WSA_backup");
   If (Test-Path -LiteralPath $script:TempFolder -PathType Container) {
@@ -109,7 +109,7 @@ Process {
       Throw "Must be ran on a Windows 11 computer."
     }
 
-    Return $Output;
+    Write-Output -NoEnumerate -InputObject $Output;
   }
 
   If (-not (Write-Header)) {

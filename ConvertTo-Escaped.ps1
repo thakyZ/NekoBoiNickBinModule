@@ -43,7 +43,7 @@ Process {
       }
     }
 
-    Return $InputObject;
+    Write-Output -NoEnumerate -InputObject $InputObject;
   }
 
   ForEach ($Input in $InputObject) {
@@ -52,5 +52,5 @@ Process {
   }
 }
 End {
-  Return $Output;
+  Write-Output -NoEnumerate -InputObject $Output;
 }

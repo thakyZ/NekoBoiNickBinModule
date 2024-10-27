@@ -65,21 +65,21 @@ Begin {
       If ($HiddenItems.Name.GetType() -eq [System.String] -and $HiddenItems.Name -eq "desktop.ini") {
         If ($Null -ne ((Get-Content -LiteralPath (Join-Path -Path $Item.FullName -ChildPath "desktop.ini")).ToLower() | Select-String "$($Type.ToLower())")) {
           Write-Host "Is found at $($Item.FullName)";
-          Return $True;
+          Write-Output -NoEnumerate -InputObject $True;
         } Else {
           Write-Host "Not found at $($Item.FullName)";
         }
       } ElseIf ($HiddenItems.Name.GetType() -eq [System.Object[]] -and [System.Linq.Enumerable]::Any([string[]]$HiddenItems.Name, [System.Func[string, bool]] { Param($x)Return $x -eq "desktop.ini" }) -eq $True) {
         If ($Null -ne ((Get-Content -LiteralPath (Join-Path -Path $Item.FullName -ChildPath "desktop.ini")).ToLower() | Select-String "$($Type.ToLower())")) {
           Write-Host "Is found at $($Item.FullName)";
-          Return $True;
+          Write-Output -NoEnumerate -InputObject $True;
         } Else {
           Write-Host "Not found at $($Item.FullName)";
         }
       }
-      Return $False;
+      Write-Output -NoEnumerate -InputObject $False;
     } Else {
-      Return $False;
+      Write-Output -NoEnumerate -InputObject $False;
     }
   }
 
@@ -197,16 +197,16 @@ Begin {
       $HashA = ($Text | Get-Hash -Algorithm SHA512)
       $FileContent = ((Get-Content -LiteralPath $LiteralPath) -join "`n");
       $HashB = ($FileContent | Get-Hash -Algorithm SHA512)
-      Return $HashA -eq $HashB
+      Write-Output -NoEnumerate -InputObject $HashA -eq $HashB
     } Catch {
       Try {
         If ($_.Exception.Message -match "^Access to the path '.+\\desktop.ini' is denied.") {
           Start-Process -FilePath $PowerShellProcess -Verb RunAs -Wait -ArgumentList @("-Command", "'&{`$HashA=(`"$($Text|ConvertTo-Base64)`"|ConvertFrom-Base64 -ToString|Get-Hash -Algorithm SHA512);`$HashB=((Get-Content -LiteralPath `"$($LiteralPath)`"))|Get-Hash -Algorithm SHA512);`$ExitCode=`$LastExitCode;If(`$HashA.Hash -eq `$HashB.Hash){`$ExitCode=-1}Else{`$ExitCode=-2};Exit `$ExitCode}'");
           $ExitCode = $LastExitCode;
           If ($ExitCode -eq -1) {
-            Return $True;
+            Write-Output -NoEnumerate -InputObject $True;
           } ElseIf ($ExitCode -eq -2) {
-            Return $False;
+            Write-Output -NoEnumerate -InputObject $False;
           } Else {
             Write-Host "Failed with exit code $($ExitCode).";
             Throw "Failed to run as administrator...";

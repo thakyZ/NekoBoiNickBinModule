@@ -42,7 +42,7 @@ Function Unprotect-Arguments {
         $EntropyBytes,
         [System.Security.Cryptography.DataProtectionScope]::LocalMachine
     )
-    Return [System.Text.UTF8Encoding]::UTF8.GetString($DecryptedByteArray)
+    Write-Output -NoEnumerate -InputObject [System.Text.UTF8Encoding]::UTF8.GetString($DecryptedByteArray)
 }
 
 Function Remove-CacheLocation {
@@ -52,7 +52,7 @@ Function Remove-CacheLocation {
         [Alias("Args", "Arg", "Argument")]
         $Arguments
     )
-    Return ($Arguments -Replace " *--cache-location=`"'$($env:Temp -Replace "\\", "`\`\")\\chocolatey\\?'`" *");
+    Write-Output -NoEnumerate -InputObject ($Arguments -Replace " *--cache-location=`"'$($env:Temp -Replace "\\", "`\`\")\\chocolatey\\?'`" *");
 }
 
 Function Remove-NbnPackageParameters {
@@ -63,7 +63,7 @@ Function Remove-NbnPackageParameters {
         $Arguments
     )
     $Output = ($Arguments -Replace "NBN_[A-Z0-9]+(?:=(?:\```")?[a-zA-Z0-9\\/:]*(?:\```")?)?");
-    Return $Output;
+    Write-Output -NoEnumerate -InputObject $Output;
 }
 
 Function Remove-NonNbnPackageParameters {
@@ -75,9 +75,9 @@ Function Remove-NonNbnPackageParameters {
     )
     $Output = ($Arguments -Match "(NBN_[A-Z0-9]+(?:=(?:\```")?[a-zA-Z0-9\\/:]*(?:\```")?)?)");
     If (-not ([string]::IsNullOrEmpty($Matches[1]))) {
-        Return $Matches[0].Replace("```"", "`"");
+        Write-Output -NoEnumerate -InputObject $Matches[0].Replace("```"", "`"");
     }
-    Return "";
+    Write-Output -NoEnumerate -InputObject "";
 }
 
 Function Read-Arguments {
@@ -90,7 +90,7 @@ Function Read-Arguments {
         $_.Name -match ($PackageName + "\.[\d\.]+")
     } | Select-Object -Last 1;
     If (-not (Test-Path -LiteralPath $Directory -PathType Container)) {
-        Return;
+      Write-Output -NoEnumerate -InputObject $Null;
     }
     $ArgsFile = (Join-Path -Path $Directory.FullName -ChildPath ".arguments");
     If (Test-Path -LiteralPath $ArgsFile -PathType Leaf) {
@@ -105,7 +105,7 @@ Function Read-Arguments {
         If (-not [string]::IsNullOrEmpty($UnprotectedArgs)) {
             $UnprotectedArgs = (Remove-NbnPackageParameters -Arguments $UnprotectedArgs);
         }
-        Return ($UnprotectedArgs -Replace "^ *", "");
+        Write-Output -NoEnumerate -InputObject ($UnprotectedArgs -Replace "^ *", "");
     }
 }
 
@@ -119,7 +119,7 @@ Function Read-PatchArguments {
         $_.Name -match ("$PackageName" + "\.[\d\.]+")
     } | Select-Object -Last 1;
     If (-not (Test-Path -LiteralPath $Directory -PathType Container)) {
-        Return;
+      Write-Output -NoEnumerate -InputObject $Null;
     }
     $ArgsFile = (Join-Path -Path $Directory.FullName -ChildPath ".arguments");
     If (Test-Path -LiteralPath $ArgsFile -PathType Leaf) {
@@ -130,17 +130,17 @@ Function Read-PatchArguments {
         If (-not [string]::IsNullOrEmpty($UnprotectedArgs)) {
             $UnprotectedArgs = (Remove-NonNbnPackageParameters -Arguments $UnprotectedArgs);
         }
-        Return ($UnprotectedArgs -Replace "^ *", "");
+        Write-Output -NoEnumerate -InputObject ($UnprotectedArgs -Replace "^ *", "");
     }
 }
 
 Function Get-LocalPackageInfo {
-    try {
-        Return (& (Get-Command -Name "choco").Source "list" "--limit-output" "--confirm");
-    } catch {
-        Write-Error -Message "Failed to run `"choco list --limit-output --confirm`"." -Exception $_.Exception;
-        Exit 1;
-    }
+  try {
+    Write-Output -NoEnumerate -InputObject (& (Get-Command -Name "choco").Source "list" "--limit-output" "--confirm");
+  } catch {
+    Write-Error -Message "Failed to run `"choco list --limit-output --confirm`"." -Exception $_.Exception;
+    Exit 1;
+  }
 }
 
 Function Invoke-EscapeInvalidChars() {
@@ -151,7 +151,7 @@ Function Invoke-EscapeInvalidChars() {
 
     $Escaped = [System.Security.SecurityElement]::Escape($InputObject);
     # $Escaped = ($Escaped -replace "\", "\\");
-    Return $Escaped;
+    Write-Output -NoEnumerate -InputObject $Escaped;
 }
 
 Function Get-PackagesConfigBody($SaveArguments = $False) {
@@ -184,7 +184,7 @@ Function Get-PackagesConfigBody($SaveArguments = $False) {
             }
 
             $Line = [string]::Join("", @($Line, "/>"))
-            Write-Output -InputObject $Line
+            Write-Output -NoEnumerate -InputObject $Line
         } Catch {
             Throw;
         }

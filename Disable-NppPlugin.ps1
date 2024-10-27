@@ -44,18 +44,18 @@ DynamicParam {
       $TestPath = (Get-Item -LiteralPath $PathToTest).Directory.FullName;
       If (Test-NppPath -PathToTest $TestPath) {
         $NppPath = $TestPath;
-        Return $True;
+        Write-Output -NoEnumerate -InputObject $True;
       } Else {
-        Return $False;
+        Write-Output -NoEnumerate -InputObject $False;
       }
     } ElseIf (Test-Path -LiteralPath $NppPath -PathType Container) {
       If (Test-Path -LiteralPath (Join-Path -Path $PathToTest -ChildPath "notepad++.exe") -PathType Leaf) {
-        Return $True;
+        Write-Output -NoEnumerate -InputObject $True;
       } Else {
-        Return $False;
+        Write-Output -NoEnumerate -InputObject $False;
       }
     } Else {
-      Return $False;
+      Write-Output -NoEnumerate -InputObject $False;
     }
   }
 

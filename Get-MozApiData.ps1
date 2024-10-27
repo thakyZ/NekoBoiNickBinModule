@@ -71,7 +71,7 @@ if ($Get) {
   }
   if (([Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($CurrentPassphrase))).compareTo([Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($Hash))) -eq 0) {
     $Json = ((Get-Content -Path "${HOME}\Pictures\.Security\Moz_Api_Keys.txt") | ConvertFrom-Json)
-    return @($Json.JWT.issuer
+    Write-Output -NoEnumerate -InputObject @($Json.JWT.issuer
              $Json.JWT.secret)
     Exit 0
   } else {

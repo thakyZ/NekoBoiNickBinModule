@@ -102,7 +102,7 @@ Begin {
       }
       [String]$Output = $Path;
       If ($Path -notmatch '%[^%]*?%') {
-        Write-Output -InputObject $Output;
+        Write-Output -NoEnumerate -InputObject $Output;
       }
       [DictionaryEntry[]]$EnvironmentVariables = (Get-ChildItem -Path "env:");
     } Process {
@@ -120,7 +120,7 @@ Begin {
         }
       }
     } End {
-      Write-Output -InputObject $Output;
+      Write-Output -NoEnumerate -InputObject $Output;
     }
   }
 
@@ -153,7 +153,7 @@ Begin {
         $Output.Add($KeyValuePair);
       }
     } End {
-      Write-Output -InputObject $Output;
+      Write-Output -NoEnumerate -InputObject $Output;
     }
   }
 

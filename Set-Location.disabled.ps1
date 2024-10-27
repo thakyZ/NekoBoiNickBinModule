@@ -59,7 +59,7 @@ Function Invoke-ForSeven {
           }
         }
 
-        Return $paramDictionary
+        Write-Output -NoEnumerate -InputObject $paramDictionary
       }
     }
     Catch {

@@ -90,7 +90,7 @@ Process {
       }
       $Val = Test-PathExists -Path "$($Directory)\$($Val.Split(".")[0] -replace $RegEx, '') ($($NewNum)).$($Val.Split(".")[1])"
     }
-    Return $Val
+    Write-Output -NoEnumerate -InputObject $Val
   }
 
   ForEach ($File in $Files) {

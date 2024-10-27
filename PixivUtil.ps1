@@ -85,18 +85,18 @@ Begin {
     )
 
     If ($Type -match "[Int\d+]" -or $Type -match "[UInt\d+]" -or $Type -eq [System.Double] -or $Type -eq [System.Single] -or $Type -eq [System.Single] -or $Type -eq [System.Decimal]) {
-      Return "DarkYellow";
+      Write-Output -NoEnumerate -InputObject "DarkYellow";
     }
     If ($Type -eq [System.String] -or $Type -eq [System.Char]) {
-      Return "DarkCyan";
+      Write-Output -NoEnumerate -InputObject "DarkCyan";
     }
     If ($Type -eq [System.Boolean]) {
-      Return "DarkGreen";
+      Write-Output -NoEnumerate -InputObject "DarkGreen";
     }
     If ($Type -eq [System.Byte] -or $Type -eq [System.SByte] -or $Type -eq [System.IntPtr] -or $Type -eq [System.UIntPtr]) {
-      Return "DarkMagenta";
+      Write-Output -NoEnumerate -InputObject "DarkMagenta";
     }
-    Return "DarkMagenta";
+    Write-Output -NoEnumerate -InputObject "DarkMagenta";
   }
   Function Get-ObjectEnclosing {
     Param(
@@ -112,18 +112,18 @@ Begin {
     )
 
     If ($Object.GetType() -eq [System.String]) {
-      Return "`"$($Object)`"";
+      Write-Output -NoEnumerate -InputObject "`"$($Object)`"";
     }
     If ($Object.GetType() -eq [System.Char]) {
-      Return "'$($Object)'";
+      Write-Output -NoEnumerate -InputObject "'$($Object)'";
     }
     If ($Object.GetType() -eq [System.Boolean]) {
-      Return "`$$($Object)";
+      Write-Output -NoEnumerate -InputObject "`$$($Object)";
     }
     If ($Object.GetType() -eq [System.Byte] -or $Object.GetType() -eq [System.SByte] -or $Object.GetType() -eq [System.IntPtr] -or $Object.GetType() -eq [System.UIntPtr]) {
-      Return "0x$([System.BitConverter]::ToString($Object).Replace('-', ''))";
+      Write-Output -NoEnumerate -InputObject "0x$([System.BitConverter]::ToString($Object).Replace('-', ''))";
     }
-    Return $Object;
+    Write-Output -NoEnumerate -InputObject $Object;
   }
 
   Function Write-Debug {

@@ -21,5 +21,5 @@ begin {
     $output = $false;
   }
   $result.Add("Bunny",$output);
-  return $result;
+  Write-Output -NoEnumerate -InputObject $result;
 }

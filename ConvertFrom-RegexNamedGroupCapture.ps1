@@ -23,5 +23,5 @@ Process {
     }
     $H["$($Name)"] = $Match.Groups["$($Name)"].Value
   }
-  Return $H
+  Write-Output -NoEnumerate -InputObject $H
 }

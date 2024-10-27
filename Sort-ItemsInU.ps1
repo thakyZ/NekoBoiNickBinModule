@@ -55,7 +55,7 @@ Process {
         Write-Error -Message "$($_.Exception.Message) Ref 2`n$($_.Exception.StackTrace)" | Out-Host;
         Throw;
       }
-      Write-Output -InputObject $Output;
+      Write-Output -NoEnumerate -InputObject $Output;
     } -ArgumentList @($Code, $PSCmdlet, $script:Debug, $script:DryRun, $script:OldConsoleMethod);
     [System.Management.Automation.Job]$State = (Get-Job -InstanceId $Job.InstanceId);
     While ($State.State -eq "Running") {

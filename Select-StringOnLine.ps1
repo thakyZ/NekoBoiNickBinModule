@@ -35,7 +35,7 @@ $Found = foreach ($Select in $Selected) {
   $i += 1;
 }
 
-Write-Output $Found;
+Write-Output -NoEnumerate -InputObject $Found;
 
 
 

@@ -48,4 +48,4 @@ Function Invoke-Process($Items) {
 
 Invoke-Process -Items @((Get-Item -LiteralPath $Root) | Where-Object { (Get-Acl $_.FullName).Owner -eq $OwnerToReplace -or ((Get-Acl -LiteralPath $_.FullName).Access | Where-Object { $_.IdentityReference -eq $OwnerToReplace -and $_.IsInherited -eq $False }).Length -ge 1 });
 Invoke-Process -Items @(Get-ChildItem $Root -Recurse | Where-Object { (Get-Acl $_.FullName).Owner -eq $OwnerToReplace -or ((Get-Acl -LiteralPath $_.FullName).Access | Where-Object { $_.IdentityReference -eq $OwnerToReplace -and $_.IsInherited -eq $False }).Length -ge 1 });
-Write-Output $script:Output;
+Write-Output -NoEnumerate -InputObject $script:Output;

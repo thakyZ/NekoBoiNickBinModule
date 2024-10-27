@@ -57,9 +57,9 @@ Process {
 
   Write-Verbose -Message 'Running if/else match loop'
   if ($ComputedHash -eq $Hash) {
-    Write-Output 'MATCH'
+    Write-Output -NoEnumerate -InputObject 'MATCH'
   }
   else {
-    Write-Output 'NO MATCH'
+    Write-Output -NoEnumerate -InputObject 'NO MATCH'
   }
 }

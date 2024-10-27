@@ -56,7 +56,7 @@ DynamicParam {
       }
     }
     End {
-      Return $Output;
+      Write-Output -NoEnumerate -InputObject $Output;
     }
   }
 
@@ -116,7 +116,7 @@ Process {
       }
     }
     End {
-      Return $Output;
+      Write-Output -NoEnumerate -InputObject $Output;
     }
   }
 

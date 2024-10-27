@@ -29,5 +29,5 @@ Begin {
     }
   }
 } End {
-  Return $Output.ToString();
+  Write-Output -NoEnumerate -InputObject $Output.ToString();
 }

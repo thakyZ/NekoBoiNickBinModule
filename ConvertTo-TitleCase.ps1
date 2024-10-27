@@ -25,5 +25,5 @@ Begin {
   }
   $Output = $Culture.TextInfo.ToTitleCase(($String.ToLower()));
 } End {
-  Return $Output;
+  Write-Output -NoEnumerate -InputObject $Output;
 }

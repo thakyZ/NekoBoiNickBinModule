@@ -37,7 +37,7 @@ ForEach ($PlaylistPath in $PlaylistPaths) {
 Function Get-VLCLocation() {
   $Output = (Get-Command -Name "vlc" -ErrorAction SilentlyContinue);
   If ($Null -ne $Output) {
-    Return $Output.Source;
+    Write-Output -NoEnumerate -InputObject $Output.Source;
   }
   $Drives = @(Get-PSDrive | Where-Object { $_.Provider -match "FileSystem" -and $_.Root.Length -eq 3 });
   ForEach ($Drive in $Drives) {

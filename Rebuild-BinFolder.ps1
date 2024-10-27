@@ -13,10 +13,10 @@ $CurrentDirectory = $PWD;
 
 Function Get-ProgramDirectory() {
   If (-not ([string]::IsNullOrEmpty($env:APROG_DIR))) {
-    Return $env:APROG_DIR;
+    Write-Output -NoEnumerate -InputObject $env:APROG_DIR;
   }
   Else {
-    Return (Get-Item -Path $PSScriptRoot).Parent.FullName;
+    Write-Output -NoEnumerate -InputObject (Get-Item -Path $PSScriptRoot).Parent.FullName;
   }
 }
 

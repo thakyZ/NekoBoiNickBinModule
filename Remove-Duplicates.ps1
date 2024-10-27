@@ -149,7 +149,7 @@ Begin {
     Try {
       $DirectoryPath = [IO.Path]::GetFullPath($Directory.FullName)
       $SubpathPath = [IO.Path]::GetFullPath($Subpath.FullName)
-      Return $SubpathPath.StartsWith($DirectoryPath, [StringComparison]::OrdinalIgnoreCase) -and $SubpathPath -ne $DirectoryPath
+      Write-Output -NoEnumerate -InputObject $SubpathPath.StartsWith($DirectoryPath, [StringComparison]::OrdinalIgnoreCase) -and $SubpathPath -ne $DirectoryPath
     } Catch {
       Throw;
       Exit 1;

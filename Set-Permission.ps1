@@ -17,7 +17,7 @@ Param(
 Function Test-AclContains($Acl) {
   Return ($Null -ne ($Acl.Access | Where-Object {
     $Access = $_;
-    Return $Access.IdentityReference -eq "Oscar11\thaky" -and $Access.IsInherited -eq $False;
+    Write-Output -NoEnumerate -InputObject $Access.IdentityReference -eq "Oscar11\thaky" -and $Access.IsInherited -eq $False;
   }));
 }
 
@@ -28,7 +28,7 @@ Function Get-AclAccessIndex($Access) {
       Break;
     }
   }
-  Return $Index;
+  Write-Output -NoEnumerate -InputObject $Index;
 }
 
 $Items = (Get-ChildItem -Path $Path -Recurse | Where-Object {

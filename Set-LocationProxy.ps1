@@ -32,7 +32,7 @@ dynamicparam {
         }
       }
 
-      return $paramDictionary
+      Write-Output -NoEnumerate -InputObject $paramDictionary
     }
   }
   catch {

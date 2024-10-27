@@ -67,7 +67,7 @@ Function Invoke-Process {
             $StdEvent, $ErrorEvent | VerboseOutput
 
             # Get Process result
-            Return GetCommandResult -Process $Process -StandardStringBuilder $StdStringBuilder -ErrorStringBuilder $ErrorStringBuilder -IsTimeOut $IsTimeout
+            Write-Output -NoEnumerate -InputObject (GetCommandResult -Process $Process -StandardStringBuilder $StdStringBuilder -ErrorStringBuilder $ErrorStringBuilder -IsTimeOut $IsTimeout);
         } finally {
             if ($null -ne $Process) { $Process.Dispose() }
             if ($null -ne $StdEvent) { $StdEvent.StopJob(); $StdEvent.Dispose() }
@@ -107,7 +107,7 @@ Function Invoke-Process {
             $Process = New-Object System.Diagnostics.Process
             $Process.StartInfo = $ProcessStartInfo
             $Process.EnableRaisingEvents = $True
-            Return $Process
+            Write-Output -NoEnumerate -InputObject $Process
         }
 
         Function GetCommandResult {

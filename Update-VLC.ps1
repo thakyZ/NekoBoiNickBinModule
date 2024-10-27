@@ -112,10 +112,10 @@ Function Get-DownloadFile() {
 
     $FoundMsi = $Web2.Links | Where-Object {
       If ($_.href -ne "../" -and $_.href -match ".*\.msi") {
-        Return $True;
+        Write-Output -NoEnumerate -InputObject $True;
       }
 
-      Return $False;
+      Write-Output -NoEnumerate -InputObject $False;
     };
 
     If ($FoundMsi.Count -gt 1) {
@@ -144,7 +144,7 @@ Function Get-DownloadFile() {
 $Web = (Get-DownloadFile -Uri $DownloadUri);
 
 If ($Web.Error -eq $True) {
-  Write-Output $Web;
+  Write-Output -NoEnumerate -InputObject $Web;
   Exit 1;
 }
 

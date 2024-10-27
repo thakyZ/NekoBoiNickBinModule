@@ -95,7 +95,7 @@ Function Get-DownloadFile() {
 $Web = (Get-DownloadFile -Uri $DownloadUri);
 
 If ($Web.Error -eq $True) {
-  Write-Output $Web;
+  Write-Output -NoEnumerate -InputObject $Web;
   Exit 1;
 }
 
@@ -106,7 +106,7 @@ If ($DownloadFile.Extension -eq ".zip") {
     Expand-Archive -LiteralPath $DownloadFile -DestinationPath $ExtractPath | Out-Null;
   } Catch {
     Write-Error -Exception $_.Exception -Message $_.Exception.Message;
-    Write-Output $Web;
+    Write-Output -NoEnumerate -InputObject $Web;
     Exit 1;
   }
 } Else {

@@ -20,9 +20,9 @@ param(
 function Test-7ZipA() {
   $7zip = (Get-Command -Name "7z.exe");
   if ($null -ne $7zip) {
-    return $7zip.Path
+    Write-Output -NoEnumerate -InputObject $7zip.Path
   }
-  return "C:\Program Files\7-Zip\7za.exe"
+  Write-Output -NoEnumerate -InputObject "C:\Program Files\7-Zip\7za.exe"
 }
 
 $now = Get-Date

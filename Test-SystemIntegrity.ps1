@@ -55,4 +55,4 @@ if (-not $DismOnly) {
   $ExitCodes += @{ Sfc = $SfcExitCode; }
 }
 
-Write-Output $ExitCodes
+Write-Output -NoEnumerate -InputObject $ExitCodes

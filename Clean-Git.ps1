@@ -1,3 +1,4 @@
+# TODO: Rewrite
 param(
   # The path to the git directory.
   [Parameter(Position=1,Mandatory=$true,HelpMessage="a")]
@@ -8,10 +9,10 @@ param(
 function Get-GitInstallation() {
   $GIT = (Get-Command git.exe);
   if ($GIT) {
-    return $GIT;
+    Write-Output -NoEnumerate -InputObject $GIT;
   } else {
     Write-Error("Git not on path...");
-    return $null;
+    Write-Output -NoEnumerate -InputObject $null;
   }
 }
 

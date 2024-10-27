@@ -134,7 +134,7 @@ Function Invoke-StringBuilder() {
     $Temp += "--lossy-quality $($LossyQuality)";
   }
   $Temp += "-o $($Output)"
-  Return $Temp;
+  Write-Output -NoEnumerate -InputObject $Temp;
 }
 
 $FFmpeg = (Get-Command -Name "ffmpeg");
@@ -240,7 +240,7 @@ Function Get-StepProgress() {
 
   $Temp = ($CurrentStep / $TotalSteps) * 100;
 
-  Return [Math]::Ceiling($Temp);
+  Write-Output -NoEnumerate -InputObject [Math]::Ceiling($Temp);
 }
 
 

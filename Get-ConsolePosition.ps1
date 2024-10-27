@@ -22,14 +22,14 @@ Process {
     If ($script:Debug -eq $True) {
       Write-DebugOver -Message @($x, $y)
     }
-    Return @{ X = $x; Y = $y; }
+    Write-Output -NoEnumerate -InputObject @{ X = $x; Y = $y; }
   } Else {
     $x = [System.Console]::CursorLeft;
     $y = [System.Console]::CursorTop;
     If ($script:Debug -eq $True) {
       Write-DebugOver -Message @($x, $y)
     }
-    Return @{ X = $x; Y = $y; }
+    Write-Output -NoEnumerate -InputObject @{ X = $x; Y = $y; }
   }
 }
 End {

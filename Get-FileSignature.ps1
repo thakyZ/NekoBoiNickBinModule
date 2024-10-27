@@ -23,7 +23,7 @@
 Param(
     [Parameter(
         Position=0,
-        Mandatory=$true, 
+        Mandatory=$true,
         ValueFromPipelineByPropertyName=$true,
         ValueFromPipeline=$True)]
     [Alias("PSPath","FullName")]
@@ -45,9 +45,9 @@ Begin {
     #Also remove any spaces so we can make it easier to match
     [regex]$pattern = ($HexFilter -replace '\*','.*') -replace '\s',''
 }
-Process {  
-    ForEach ($item in $Path) { 
-        Try {                     
+Process {
+    ForEach ($item in $Path) {
+        Try {
             $item = Get-Item -LiteralPath (Convert-Path $item) -Force -ErrorAction Stop
         } Catch {
             Write-Warning "$($item): $($_.Exception.Message)"
@@ -82,7 +82,7 @@ Process {
                             } Else {
                                 [void]$hexstringBuilder.Append(" ")
                                 [void]$hexstringBuilder.Append(("{0:X}" -f $bytebuffer[$i]).PadLeft(2, "0"))
-                            }        
+                            }
                         }
                         If ([char]::IsLetterOrDigit($bytebuffer[$i])) {
                             [void]$stringBuilder.Append([char]$bytebuffer[$i])
@@ -100,7 +100,7 @@ Process {
                             Extension = $Item.fullname -replace '.*\.(.*)','$1'
                         }
                         $object.pstypenames.insert(0,'System.IO.FileInfo.Signature')
-                        Write-Output $object
+                        Write-Output -NoEnumerate -InputObject $object
                     }
                 } ElseIf ($Item.length -eq 0) {
                     Write-Warning ("{0} has no data ({1} bytes)!" -f $item.name,$item.length)
@@ -114,5 +114,5 @@ Process {
             #Close the file stream so the file is no longer locked by the process
             $FileStream.Close()
         }
-    }        
+    }
 }

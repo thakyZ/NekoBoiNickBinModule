@@ -164,7 +164,7 @@ Process {
             $LocalOutput = $False;
           }
 
-          Return $LocalOutput;
+          Write-Output -NoEnumerate -InputObject $LocalOutput;
         }
 
         If (-not (Test-AllColumnsFilled -InputObject $OrderedHashTable)) {

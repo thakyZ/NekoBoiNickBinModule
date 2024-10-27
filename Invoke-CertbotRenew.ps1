@@ -168,7 +168,7 @@ Process
 
 #   $local:Cmd = "$($CertBot) certonly --dns-cloudflare --dns-cloudflare-credentials=`"$($CloudFlareApi)`" -d $($Domain) -q"
 #   $local:Cmd = "$($CertBot) certonly --dns-cloudflare --manual --preferred-challenges dns -d $($Domain) -q";
-    $local:Cmd = "$($ACME) --debug 2 --ocsp-must-staple --keylength 4096 --issue --dns dns_cf $($Domain) --server letsencrypt --key-file /etc/letsencrypt/live/example.com/privkey.pem --fullchain-file /etc/letsencrypt/live/example.com/fullchain.pem"
+    $local:Cmd = "$($ACME) --debug 2 --ocsp-must-staple --keylength 4096 --renew --dns dns_cf $($Domain) --server letsencrypt --key-file /etc/letsencrypt/live/example.com/privkey.pem --fullchain-file /etc/letsencrypt/live/example.com/fullchain.pem"
 
     $local:data = (& "$($local:Cmd)");
 

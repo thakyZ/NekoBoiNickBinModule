@@ -5,6 +5,8 @@ VisualStudioVersion = 17.8.34511.84
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APROG_DIR", "APROG_DIR.csproj", "{0404199D-E069-474F-A4E4-F78A3F88DB65}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SoupCatUtils", "src/SoupCatUtils.csproj", "{0404199D-E069-474F-A4E4-F78A3F88DB66}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "root", "root", "{9C097FA6-6ABE-492F-B6D8-15A82CF63223}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
@@ -21,6 +23,10 @@ Global
 		{0404199D-E069-474F-A4E4-F78A3F88DB65}.Debug|x64.Build.0 = Debug|x64
 		{0404199D-E069-474F-A4E4-F78A3F88DB65}.Release|x64.ActiveCfg = Release|x64
 		{0404199D-E069-474F-A4E4-F78A3F88DB65}.Release|x64.Build.0 = Release|x64
+		{0404199D-E069-474F-A4E4-F78A3F88DB66}.Debug|x64.ActiveCfg = Debug|x64
+		{0404199D-E069-474F-A4E4-F78A3F88DB66}.Debug|x64.Build.0 = Debug|x64
+		{0404199D-E069-474F-A4E4-F78A3F88DB66}.Release|x64.ActiveCfg = Release|x64
+		{0404199D-E069-474F-A4E4-F78A3F88DB66}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
